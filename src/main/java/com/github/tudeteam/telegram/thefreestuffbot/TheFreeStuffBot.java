@@ -31,6 +31,16 @@ public class TheFreeStuffBot extends AbilityBot {
     }
 
     @SuppressWarnings("unused")
+    public Ability commandStart() {
+        return Ability.builder()
+                .name("start")
+                .privacy(Privacy.PUBLIC)
+                .locality(Locality.USER)
+                .action(ctx -> silent.send("⚠ The bot is work in progress ⚠", ctx.chatId()))
+                .build();
+    }
+
+    @SuppressWarnings("unused")
     public Ability commandHere() {
         return Ability.builder()
                 .name("here")

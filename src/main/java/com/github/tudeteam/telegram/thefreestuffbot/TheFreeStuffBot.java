@@ -1,5 +1,7 @@
 package com.github.tudeteam.telegram.thefreestuffbot;
 
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
 import org.telegram.abilitybots.api.bot.AbilityBot;
 import org.telegram.abilitybots.api.objects.Ability;
 import org.telegram.abilitybots.api.objects.Locality;
@@ -16,13 +18,14 @@ public class TheFreeStuffBot extends AbilityBot {
     /* End of configuration */
 
     protected static final DefaultBotOptions options = new DefaultBotOptions();
+    protected static final MongoClient mongoClient = MongoClients.create(botDatabaseURI);
 
     static {
         options.setMaxThreads(10);
     }
 
     protected TheFreeStuffBot() {
-        super(botToken, botUsername, options);
+        super(botToken, botUsername, new MongoDBContext(mongoClient, "freestuff-bot-telegram"), options);
     }
 
     @Override
@@ -51,6 +54,7 @@ public class TheFreeStuffBot extends AbilityBot {
                     System.out.println("SUPPORT WAS CALLED: chatID: " + ctx.chatId());
                     silent.send("Help is on the way!", ctx.chatId());
                 })
+                .enableStats()
                 .build();
     }
 }

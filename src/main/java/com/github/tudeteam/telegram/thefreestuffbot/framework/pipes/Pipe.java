@@ -30,8 +30,9 @@ public interface Pipe<T> extends Handler<T> {
      * Registers an event handler in the pipe.
      *
      * @param handler The handler, which should return {@code true} when it consumes the event.
+     * @return {@code true} if the handler has been registered successfully.
      */
-    void registerHandler(Handler<T> handler);
+    boolean registerHandler(Handler<T> handler);
 
     /**
      * Unregisters an event handler from the pipe.

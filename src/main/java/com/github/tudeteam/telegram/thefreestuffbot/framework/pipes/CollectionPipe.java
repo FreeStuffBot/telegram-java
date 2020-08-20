@@ -25,8 +25,8 @@ public abstract class ListPipe<T> implements Pipe<T> {
     }
 
     @Override
-    public void registerHandler(Handler<T> handler) {
-        handlers.add(handler);
+    public boolean registerHandler(Handler<T> handler) {
+        return handlers.add(handler);
     }
 
     @Override

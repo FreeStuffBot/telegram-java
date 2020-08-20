@@ -13,10 +13,20 @@ public class CommandsHandler implements Handler<Update> {
     public final Authorizer authorizer;
 
     /**
-     * Creates a command handler with public commands authorization only.
+     * Contains the registered commands.
      */
-    public CommandsHandler() {
-        authorizer = new DefaultAuthorizer();
+    public final Map<String, Command> commands = new HashMap<>();
+
+    //TODO: Create a base bot class for the framework bots so it's not polling bots only.
+    public final TelegramLongPollingBot bot;
+
+    /**
+     * Creates a command handler with public commands authorization only.
+     *
+     * @param bot The bot instance to handle commands for.
+     */
+    public CommandsHandler(TelegramLongPollingBot bot) {
+        this(new DefaultAuthorizer(), bot);
     }
 
     /**
@@ -24,8 +34,14 @@ public class CommandsHandler implements Handler<Update> {
      *
      * @param authorizer The commands authorizer which determines if the user is allowed to use the command or not.
      */
-    public CommandsHandler(Authorizer authorizer) {
+    public CommandsHandler(Authorizer authorizer, TelegramLongPollingBot bot) {
         this.authorizer = authorizer;
+        this.bot = bot;
+    }
+
+    public void registerCommand(Command command) {
+        assert !commands.containsKey(command.name) : "A command under the same name '" + command.name + "' is already registered!";
+        commands.put(command.name, command);
     }
 
     @Override

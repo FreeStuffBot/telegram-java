@@ -37,9 +37,9 @@ public interface Pipe<T> extends Handler<T> {
      * Unregisters an event handler from the pipe.
      *
      * @param handler The handler to unregister.
-     * @return The handler removed, which can be null if it was not registered.
+     * @return {@code true} if the handler was registered previously.
      */
-    Handler<T> unregisterHandler(Handler<T> handler);
+    boolean unregisterHandler(Handler<T> handler);
 
     /**
      * Alias for {@link #process process()} so the pipe can be used as a handler or a predicate.

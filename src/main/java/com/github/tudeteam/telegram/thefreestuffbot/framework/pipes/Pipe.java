@@ -40,16 +40,4 @@ public interface Pipe<T> extends Handler<T> {
      * @return {@code true} if the handler was registered previously.
      */
     boolean unregisterHandler(Handler<T> handler);
-
-    /**
-     * Alias for {@link #process process()} so the pipe can be used as a handler or a predicate.
-     *
-     * @param event the event to process.
-     * @return {@code true} if event was consumed by the pipe,
-     * otherwise {@code false}
-     */
-    @Override
-    default boolean test(T event) {
-        return process(event);
-    }
 }

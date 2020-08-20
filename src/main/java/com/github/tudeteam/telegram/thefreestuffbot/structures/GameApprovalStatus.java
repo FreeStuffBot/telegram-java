@@ -1,4 +1,4 @@
-package com.github.tudeteam.telegram.thefreestuffbot.database;
+package com.github.tudeteam.telegram.thefreestuffbot.structures;
 
 import com.google.gson.annotations.SerializedName;
 

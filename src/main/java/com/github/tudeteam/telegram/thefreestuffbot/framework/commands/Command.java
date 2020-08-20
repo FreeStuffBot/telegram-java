@@ -54,6 +54,6 @@ public abstract class Command {
      * @param source The message which triggered the command execution.
      * @throws TelegramApiException Telegram API exceptions.
      */
-    public abstract void execute(Message source) throws TelegramApiException;
+    public abstract void action(Message source) throws TelegramApiException;
 
 }

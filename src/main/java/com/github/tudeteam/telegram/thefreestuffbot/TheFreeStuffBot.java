@@ -1,60 +1,42 @@
 package com.github.tudeteam.telegram.thefreestuffbot;
 
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoClients;
-import org.telegram.abilitybots.api.bot.AbilityBot;
-import org.telegram.abilitybots.api.objects.Ability;
-import org.telegram.abilitybots.api.objects.Locality;
-import org.telegram.abilitybots.api.objects.Privacy;
-import org.telegram.telegrambots.bots.DefaultBotOptions;
+import org.telegram.telegrambots.bots.TelegramLongPollingBot;
+import org.telegram.telegrambots.meta.api.objects.Update;
 
-public class TheFreeStuffBot extends AbilityBot {
+public class TheFreeStuffBot extends TelegramLongPollingBot {
 
     /* Configuration variables using Environment variables */
     protected static final String botToken = System.getenv("BOT_TOKEN");
     protected static final String botUsername = System.getenv("BOT_USERNAME");
-    protected static final int botCreatorID = Integer.parseInt(System.getenv("BOT_CREATORID"));
+    //protected static final int botCreatorID = Integer.parseInt(System.getenv("BOT_CREATORID"));
     protected static final String botDatabaseURI = System.getenv("BOT_DATABASE");
     /* End of configuration */
 
-    protected static final DefaultBotOptions options = new DefaultBotOptions();
-    protected static final MongoClient mongoClient = MongoClients.create(botDatabaseURI);
-
-    static {
-        options.setMaxThreads(10);
-    }
-
-    protected TheFreeStuffBot() {
-        super(botToken, botUsername, new MongoDBContext(mongoClient, "freestuff-bot-telegram"), options);
-    }
-
+    /**
+     * This method is called when receiving updates via GetUpdates method
+     *
+     * @param update Update received
+     */
     @Override
-    public int creatorId() {
-        return botCreatorID;
+    public void onUpdateReceived(Update update) {
+        System.out.println("Received update: " + update);
     }
 
-    @SuppressWarnings("unused")
-    public Ability commandStart() {
-        return Ability.builder()
-                .name("start")
-                .privacy(Privacy.PUBLIC)
-                .locality(Locality.USER)
-                .action(ctx -> silent.send("⚠ The bot is work in progress ⚠", ctx.chatId()))
-                .build();
+    /**
+     * Return bot username of this bot
+     */
+    @Override
+    public String getBotUsername() {
+        return botUsername;
     }
 
-    @SuppressWarnings("unused")
-    public Ability commandHere() {
-        return Ability.builder()
-                .name("here")
-                .info("Only execute this command when prompted to do so by the FreeStuff support team!")
-                .privacy(Privacy.PUBLIC)
-                .locality(Locality.ALL)
-                .action(ctx -> {
-                    System.out.println("SUPPORT WAS CALLED: chatID: " + ctx.chatId());
-                    silent.send("Help is on the way!", ctx.chatId());
-                })
-                .enableStats()
-                .build();
+    /**
+     * Returns the token of the bot to be able to perform Telegram Api Requests
+     *
+     * @return Token of the bot
+     */
+    @Override
+    public String getBotToken() {
+        return botToken;
     }
 }

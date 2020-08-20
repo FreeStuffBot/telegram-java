@@ -1,18 +1,35 @@
 package com.github.tudeteam.telegram.thefreestuffbot.framework.pipes;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
 
 /**
- * A pipe which stores it's handlers within a List.
+ * A pipe which stores it's handlers using a collection.
  *
  * @param <T> The events type, ex: Update.
  */
-public abstract class ListPipe<T> implements Pipe<T> {
+public abstract class CollectionPipe<T> implements Pipe<T> {
+
     /**
-     * The handlers List, implemented as an ArrayList.
+     * The handlers collection.
      */
-    protected List<Handler<T>> handlers = new ArrayList<>();
+    protected final Collection<Handler<T>> handlers;
+
+    /**
+     * Create a CollectionPipe using an ArrayList as the container.
+     */
+    public CollectionPipe() {
+        handlers = new ArrayList<>();
+    }
+
+    /**
+     * Create a CollectionPipe using a specific container.
+     *
+     * @param handlers The container to store the handlers in.
+     */
+    public CollectionPipe(Collection<Handler<T>> handlers) {
+        this.handlers = handlers;
+    }
 
     /**
      * Gets an array of all the handlers currently registered in the pipe.

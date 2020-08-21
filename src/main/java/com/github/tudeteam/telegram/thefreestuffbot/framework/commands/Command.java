@@ -1,7 +1,6 @@
 package com.github.tudeteam.telegram.thefreestuffbot.framework.commands;
 
 import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 /**
  * Represents a command which can be executed by the bot.
@@ -53,8 +52,7 @@ public abstract class Command {
      *
      * @param source        The message which triggered the command execution.
      * @param parsedCommand The parsed command content from the message.
-     * @throws TelegramApiException Telegram API exceptions.
      */
-    public abstract void action(Message source, ParsedCommand parsedCommand) throws TelegramApiException;
+    public abstract void action(Message source, ParsedCommand parsedCommand);
 
 }

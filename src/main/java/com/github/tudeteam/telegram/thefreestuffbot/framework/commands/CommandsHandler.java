@@ -6,7 +6,6 @@ import com.github.tudeteam.telegram.thefreestuffbot.framework.pipes.Handler;
 import com.github.tudeteam.telegram.thefreestuffbot.framework.utilities.SilentExecutor;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -121,7 +120,7 @@ public class CommandsHandler implements Handler<Update> {
     protected void executeCommand(Message message, ParsedCommand parsedCommand, Command command) {
         try {
             command.action(message, parsedCommand);
-        } catch (TelegramApiException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }

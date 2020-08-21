@@ -15,7 +15,6 @@ import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 public class TheFreeStuffBot extends TelegramLongPollingBot {
 
@@ -40,8 +39,8 @@ public class TheFreeStuffBot extends TelegramLongPollingBot {
 
         Command pingCommand = new Command("ping", "Pong!", Locality.ALL, Privacy.PUBLIC) {
             @Override
-            public void action(Message source, ParsedCommand parsedCommand) throws TelegramApiException {
-                execute(new SendMessage().setChatId(source.getChatId()).setText("Pong 🏓"));
+            public void action(Message source, ParsedCommand parsedCommand) {
+                silent.execute(new SendMessage().setChatId(source.getChatId()).setText("Pong 🏓"));
             }
         };
 

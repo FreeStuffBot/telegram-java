@@ -44,7 +44,7 @@ public class ParsedCommand {
         String commandTag = message.getText().substring(1, commandEntity.getLength());
         String commandName, commandUsername;
 
-        int atLocation = commandTag.indexOf('/');
+        int atLocation = commandTag.indexOf('@');
         if (atLocation == -1) {
             commandName = commandTag;
             commandUsername = null;

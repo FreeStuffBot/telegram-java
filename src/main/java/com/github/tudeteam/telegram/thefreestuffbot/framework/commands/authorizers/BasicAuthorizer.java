@@ -1,6 +1,7 @@
 package com.github.tudeteam.telegram.thefreestuffbot.framework.commands.authorizers;
 
 import com.github.tudeteam.telegram.thefreestuffbot.framework.commands.Command;
+import com.github.tudeteam.telegram.thefreestuffbot.framework.commands.ParsedCommand;
 import org.telegram.telegrambots.meta.api.objects.Message;
 
 /**
@@ -33,7 +34,8 @@ public interface BasicAuthorizer extends Authorizer {
     boolean isGroupAdmin(Message message);
 
     @Override
-    default String authorize(Message source, Command command) {
+    default String authorize(ParsedCommand parsedCommand, Command command) {
+        Message source = parsedCommand.origin;
         switch (command.privacy) {
             case PUBLIC:
                 return null; //Always authorized for anyone.

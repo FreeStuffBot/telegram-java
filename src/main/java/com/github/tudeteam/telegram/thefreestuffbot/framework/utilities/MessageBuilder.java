@@ -215,12 +215,24 @@ public class MessageBuilder {
     /**
      * Sets the message to reply to, and the chat to use.
      *
-     * @param message The message to reply to, the chat is set at the same time.
+     * @param message The message to reply to, in the same chat to send to.
      * @return this.
      */
     public MessageBuilder replyTo(Message message) {
         sendMessage.setChatId(message.getChatId());
         sendMessage.setReplyToMessageId(message.getMessageId());
+        return this;
+    }
+
+    /**
+     * Sets the message to reply to only if it was a message in a group, and the chat to user.
+     *
+     * @param message The message to reply to if it was in a group, in the same chat to send to.
+     * @return this.
+     */
+    public MessageBuilder replyToOnlyInGroup(Message message) {
+        sendMessage.setChatId(message.getChatId());
+        sendMessage.setReplyToMessageId(message.isUserMessage() ? null : message.getMessageId());
         return this;
     }
 

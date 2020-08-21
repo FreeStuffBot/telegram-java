@@ -5,7 +5,6 @@ import com.github.tudeteam.telegram.thefreestuffbot.framework.commands.authorize
 import com.github.tudeteam.telegram.thefreestuffbot.framework.pipes.Handler;
 import com.github.tudeteam.telegram.thefreestuffbot.framework.utilities.SilentExecutor;
 import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.MessageEntity;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
@@ -92,6 +91,26 @@ public class CommandsHandler implements Handler<Update> {
         return commands.remove(command.name, command);
     }
 
+    /**
+     * Check if the command's locality allows using it.
+     *
+     * @param parsedCommand The parsed command request.
+     * @param command       The command to execute.
+     * @return {@code null} if it was valid, otherwise the rejection reason.
+     */
+    protected String checkCommandLocality(ParsedCommand parsedCommand, Command command) {
+        //A group command used under private messages.
+        if (command.locality == Locality.GROUP && parsedCommand.origin.isUserMessage())
+            return parsedCommand + " is available only in groups ⚠";
+
+        //A private messages command used under a group.
+        if (command.locality == Locality.USER && !parsedCommand.origin.isUserMessage())
+            return parsedCommand + " is available only in private chats ⚠";
+
+        //The command's locality is valid.
+        return null;
+    }
+
     @Override
     public boolean process(Update update) {
         //TODO: Tear this method into multiple methods, and cleanup.
@@ -100,69 +119,47 @@ public class CommandsHandler implements Handler<Update> {
         if (!update.hasMessage()) return false;
         Message message = update.getMessage();
 
-        //Ignore non-text messages.
-        if (!message.hasText()) return false;
-        String text = message.getText();
+        //Ignore non-command messages.
+        if (!message.isCommand()) return false;
 
-        //Ignore messages not starting with a '/'.
-        if (!text.startsWith("/")) return false;
+        //Parse the command.
+        ParsedCommand parsedCommand = ParsedCommand.parse(message);
 
-        MessageEntity commandEntity = message.getEntities().get(0);
-        if (!commandEntity.getType().equals("bot_command")) return false;
-        if (commandEntity.getOffset() != 0) return false;
-        String commandTag = text.substring(1, commandEntity.getLength());
-        String commandName;
-
-        if (commandTag.contains("@")) {
-            int atPosition = commandTag.indexOf("@");
-            commandName = commandTag.substring(0, atPosition);
-
-            String commandUsername = commandTag.substring(atPosition + 1);
-            if (!commandUsername.equals(botUsername)) {
-                if (message.isUserMessage())
-                    silent.compose().text("You're requesting an another bot's command from me 😅") //EASTER_EGG
-                            .chatId(message).send();
-                return true; //The update got consumed, it's a command for an another bot..
-            }
-        } else if (!message.isUserMessage()) {
-            return true; //The update got consumed, a command without the username postfix under a group.
-        } else {
-            commandName = commandTag;
+        //Check the username in the command.
+        if (parsedCommand.username == null) {
+            if (!message.isUserMessage())
+                return true; //The update got consumed, a command without the username postfix under a group.
+        } else if (!parsedCommand.username.equals(botUsername)) {
+            if (message.isUserMessage())
+                silent.compose().text("You're requesting an another bot's command from me 😅") //EASTER_EGG
+                        .chatId(message).send();
+            return true; //The update got consumed, it's a command for an another bot.
         }
 
-        Command command = commands.get(commandName);
+        //Lookup the command.
+        Command command = commands.get(parsedCommand.name);
 
+        //It was not found.
         if (command == null) {
-            silent.compose().text("Unknown command /" + commandTag + " ⚠")
-                    .replyToOnlyInGroup(message).send();
-
+            silent.compose().text("Unknown command " + parsedCommand + " ⚠").replyToOnlyInGroup(message).send();
             return true; //Update consumed, command not found.
         }
 
-        if (command.locality == Locality.GROUP && message.isUserMessage()) {
-            silent.compose().text("/" + commandTag + " is available only in groups ⚠")
-                    .chatId(message).send();
-
-            return true; //Update consumed, a group command used under private messages.
+        //Check the locality of the command if allows using it.
+        String localityRejection = checkCommandLocality(parsedCommand, command);
+        if (localityRejection != null) {
+            silent.compose().text(localityRejection).replyToOnlyInGroup(message).send();
+            return true; //The update got consumed, the command's locality doesn't allow using it.
         }
 
-        if (command.locality == Locality.USER && !message.isUserMessage()) {
-            silent.compose().text("/" + commandTag + " is available only in private chats ⚠")
-                    .chatId(message).send();
-
-            return true; //Update consumed, a private messages command used under a group.
-        }
-
-
+        //Check the access level of the user if allows to use the command.
         String rejectionReason = authorizer.authorize(message, command);
-
         if (rejectionReason != null) {
-            silent.compose().text(rejectionReason)
-                    .replyToOnlyInGroup(message).send();
-
+            silent.compose().text(rejectionReason).replyToOnlyInGroup(message).send();
             return true; //Update consumed, command not authorized.
         }
 
+        //TODO: Pass the parsed command and move the execution into a separate method.
         try {
             command.action(message);
         } catch (TelegramApiException e) {

@@ -1,4 +1,4 @@
-package com.github.tudeteam.telegram.thefreestuffbot.framework;
+package com.github.tudeteam.telegram.thefreestuffbot.framework.utilities;
 
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.groupadministration.SetChatPhoto;
@@ -24,6 +24,10 @@ public class SilentExecutor {
 
     public SilentExecutor(AbsSender bot) {
         this.bot = bot;
+    }
+
+    public SilentMessageBuilder compose() {
+        return new SilentMessageBuilder();
     }
 
     public <T extends Serializable, Method extends BotApiMethod<T>, Callback extends SentCallback<T>> void executeAsync(Method method, Callback callback) {
@@ -175,6 +179,22 @@ public class SilentExecutor {
         } catch (TelegramApiException e) {
             e.printStackTrace();
             return null;
+        }
+    }
+
+    public class SilentMessageBuilder extends MessageBuilder {
+        public SilentMessageBuilder() {
+            super(bot);
+        }
+
+        @Override
+        public Message send() {
+            try {
+                return super.send();
+            } catch (TelegramApiException e) {
+                e.printStackTrace();
+                return null;
+            }
         }
     }
 }

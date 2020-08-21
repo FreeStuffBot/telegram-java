@@ -111,10 +111,23 @@ public class CommandsHandler implements Handler<Update> {
         return null;
     }
 
+    /**
+     * Execute the command catching an exception necessary.
+     *
+     * @param message       The origin message of the command.
+     * @param parsedCommand The parsed command request.
+     * @param command       The command to execute.
+     */
+    protected void executeCommand(Message message, ParsedCommand parsedCommand, Command command) {
+        try {
+            command.action(message, parsedCommand);
+        } catch (TelegramApiException e) {
+            e.printStackTrace();
+        }
+    }
+
     @Override
     public boolean process(Update update) {
-        //TODO: Tear this method into multiple methods, and cleanup.
-
         //Ignore non-message updates.
         if (!update.hasMessage()) return false;
         Message message = update.getMessage();
@@ -153,18 +166,14 @@ public class CommandsHandler implements Handler<Update> {
         }
 
         //Check the access level of the user if allows to use the command.
-        String rejectionReason = authorizer.authorize(message, command);
+        String rejectionReason = authorizer.authorize(parsedCommand, command);
         if (rejectionReason != null) {
             silent.compose().text(rejectionReason).replyToOnlyInGroup(message).send();
             return true; //Update consumed, command not authorized.
         }
 
-        //TODO: Pass the parsed command and move the execution into a separate method.
-        try {
-            command.action(message);
-        } catch (TelegramApiException e) {
-            e.printStackTrace();
-        }
+        //Execute the command.
+        executeCommand(message, parsedCommand, command);
 
         return true; //Update consumed, command executed.
     }

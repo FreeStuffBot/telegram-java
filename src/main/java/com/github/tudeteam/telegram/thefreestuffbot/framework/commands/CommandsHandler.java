@@ -3,6 +3,7 @@ package com.github.tudeteam.telegram.thefreestuffbot.framework.commands;
 import com.github.tudeteam.telegram.thefreestuffbot.framework.commands.authorizers.Authorizer;
 import com.github.tudeteam.telegram.thefreestuffbot.framework.commands.authorizers.DefaultAuthorizer;
 import com.github.tudeteam.telegram.thefreestuffbot.framework.pipes.Handler;
+import com.github.tudeteam.telegram.thefreestuffbot.framework.utilities.CommandBuilder;
 import com.github.tudeteam.telegram.thefreestuffbot.framework.utilities.SilentExecutor;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -88,6 +89,22 @@ public class CommandsHandler implements Handler<Update> {
      */
     public boolean unregisterCommand(Command command) {
         return commands.remove(command.name, command);
+    }
+
+    /**
+     * Creates a new CommandBuilder which will automatically register the command when built.
+     *
+     * @return A CommandBuilder that will automatically register the command when built.
+     */
+    public CommandBuilder newCommand() {
+        return new CommandBuilder() {
+            @Override
+            public Command build() {
+                Command command = super.build();
+                registerCommand(command);
+                return command;
+            }
+        };
     }
 
     /**

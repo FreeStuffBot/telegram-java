@@ -301,11 +301,28 @@ public class MessageBuilder {
 
     /**
      * Sends the composed message.
+     * <p>
+     * Prints a stacktrace into {@code stderr} or failure.
      *
-     * @return The sent message.
-     * @throws TelegramApiException in case of failure.
+     * @return The sent message on success, {@code null} otherwise.
      */
-    public Message send() throws TelegramApiException {
+    public Message send() {
+        try {
+            return this.execute();
+        } catch (TelegramApiException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    /**
+     * Executes the SendMessage operation, throwing exception on failure.
+     * <p>
+     * Prints a stacktrace into {@code stderr} or failure.
+     *
+     * @return The sent message on success, {@code null} otherwise.
+     */
+    public Message execute() throws TelegramApiException {
         return bot.execute(sendMessage);
     }
 }

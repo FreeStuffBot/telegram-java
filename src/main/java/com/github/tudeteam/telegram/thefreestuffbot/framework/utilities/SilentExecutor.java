@@ -39,10 +39,10 @@ public class SilentExecutor {
     /**
      * Composes a message.
      *
-     * @return a new {@code SilentMessageBuilder}.
+     * @return a new {@code MessageBuilder}.
      */
-    public SilentMessageBuilder compose() {
-        return new SilentMessageBuilder();
+    public MessageBuilder compose() {
+        return new MessageBuilder(bot);
     }
 
     public <T extends Serializable, Method extends BotApiMethod<T>, Callback extends SentCallback<T>> void executeAsync(Method method, Callback callback) {
@@ -194,31 +194,6 @@ public class SilentExecutor {
         } catch (TelegramApiException e) {
             e.printStackTrace();
             return null;
-        }
-    }
-
-    /**
-     * Composes bot's messages with a much sweeter syntax.
-     * And handles the exceptions silently.
-     */
-    public class SilentMessageBuilder extends MessageBuilder {
-        public SilentMessageBuilder() {
-            super(bot);
-        }
-
-        /**
-         * Sends the composed message.
-         *
-         * @return The sent message on success, {@code null} otherwise.
-         */
-        @Override
-        public Message send() {
-            try {
-                return super.send();
-            } catch (TelegramApiException e) {
-                e.printStackTrace();
-                return null;
-            }
         }
     }
 }

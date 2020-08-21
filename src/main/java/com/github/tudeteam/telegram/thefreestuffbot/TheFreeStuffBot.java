@@ -1,9 +1,6 @@
 package com.github.tudeteam.telegram.thefreestuffbot;
 
-import com.github.tudeteam.telegram.thefreestuffbot.framework.commands.Command;
-import com.github.tudeteam.telegram.thefreestuffbot.framework.commands.CommandsHandler;
-import com.github.tudeteam.telegram.thefreestuffbot.framework.commands.Locality;
-import com.github.tudeteam.telegram.thefreestuffbot.framework.commands.Privacy;
+import com.github.tudeteam.telegram.thefreestuffbot.framework.commands.*;
 import com.github.tudeteam.telegram.thefreestuffbot.framework.commands.authorizers.Authorizer;
 import com.github.tudeteam.telegram.thefreestuffbot.framework.commands.authorizers.BasicAuthorizer;
 import com.github.tudeteam.telegram.thefreestuffbot.framework.pipes.ConsumeOncePipe;
@@ -60,7 +57,7 @@ public class TheFreeStuffBot extends TelegramLongPollingBot {
 
         Command pingCommand = new Command("ping", "Pong!", Locality.ALL, Privacy.PUBLIC) {
             @Override
-            public void action(Message source) throws TelegramApiException {
+            public void action(Message source, ParsedCommand parsedCommand) throws TelegramApiException {
                 execute(new SendMessage().setChatId(source.getChatId()).setText("Pong 🏓"));
             }
         };

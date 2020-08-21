@@ -8,6 +8,7 @@ import com.github.tudeteam.telegram.thefreestuffbot.framework.commands.authorize
 import com.github.tudeteam.telegram.thefreestuffbot.framework.commands.authorizers.BasicAuthorizer;
 import com.github.tudeteam.telegram.thefreestuffbot.framework.pipes.ConsumeOncePipe;
 import com.github.tudeteam.telegram.thefreestuffbot.framework.pipes.Pipe;
+import com.github.tudeteam.telegram.thefreestuffbot.framework.utilities.SilentExecutor;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.groupadministration.GetChatMember;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -54,7 +55,7 @@ public class TheFreeStuffBot extends TelegramLongPollingBot {
             }
         };
 
-        CommandsHandler commandsHandler = new CommandsHandler(authorizer, this);
+        CommandsHandler commandsHandler = new CommandsHandler(botUsername, new SilentExecutor(this), authorizer);
         updatesPipe.registerHandler(commandsHandler);
 
         Command pingCommand = new Command("ping", "Pong!", Locality.ALL, Privacy.PUBLIC) {

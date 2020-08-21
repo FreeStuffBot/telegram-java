@@ -17,6 +17,16 @@ import org.telegram.telegrambots.meta.updateshandlers.SentCallback;
 import java.io.Serializable;
 import java.util.List;
 
+/**
+ * Executes Telegram methods <i>silently</i>, without throwing exceptions.
+ * <p>
+ * Intended for using the bots API without much of try/catch boilerplate filling the code.
+ *
+ * <ul>
+ *     <li><b>On success:</b> the proper result object is returned.</li>
+ *     <li><b>On failure:</b> a stacktrace is printed into {@code stderr}, and null is returned.</li>
+ * </ul>
+ */
 @SuppressWarnings("unused")
 public class SilentExecutor {
 
@@ -26,6 +36,11 @@ public class SilentExecutor {
         this.bot = bot;
     }
 
+    /**
+     * Composes a message.
+     *
+     * @return a new {@code SilentMessageBuilder}.
+     */
     public SilentMessageBuilder compose() {
         return new SilentMessageBuilder();
     }

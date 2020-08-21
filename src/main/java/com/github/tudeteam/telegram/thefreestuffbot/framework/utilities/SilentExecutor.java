@@ -182,11 +182,20 @@ public class SilentExecutor {
         }
     }
 
+    /**
+     * Composes bot's messages with a much sweeter syntax.
+     * And handles the exceptions silently.
+     */
     public class SilentMessageBuilder extends MessageBuilder {
         public SilentMessageBuilder() {
             super(bot);
         }
 
+        /**
+         * Sends the composed message.
+         *
+         * @return The sent message on success, {@code null} otherwise.
+         */
         @Override
         public Message send() {
             try {

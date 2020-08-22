@@ -1,6 +1,7 @@
 package com.github.tudeteam.telegram.thefreestuffbot;
 
 import com.github.tudeteam.telegram.thefreestuffbot.framework.commands.CommandsHandler;
+import com.github.tudeteam.telegram.thefreestuffbot.framework.mongodb.ChatsTracker;
 import com.github.tudeteam.telegram.thefreestuffbot.framework.mongodb.commands.DemoteCommand;
 import com.github.tudeteam.telegram.thefreestuffbot.framework.mongodb.commands.PromoteCommand;
 import com.github.tudeteam.telegram.thefreestuffbot.framework.mongodb.commands.authorizers.AuthorizeWithMongoDB;
@@ -27,13 +28,16 @@ public class TheFreeStuffBot extends TelegramLongPollingBot {
     protected static final MongoClient mongoClient = MongoClients.create(botDatabaseURI);
     protected static final MongoDatabase mongoDatabase = mongoClient.getDatabase("freestuffbot");
     protected static final MongoCollection<Document> adminsCollection = mongoDatabase.getCollection("telegram-admins");
+    protected static final MongoCollection<Document> chatsCollection = mongoDatabase.getCollection("telegram-chats");
 
     protected final Pipe<Update> updatesPipe = new ConsumeOncePipe<>();
     protected final SilentExecutor silent = new SilentExecutor(this);
     protected final AuthorizeWithMongoDB authorizer = new AuthorizeWithMongoDB(botCreatorID, silent, adminsCollection);
     protected final CommandsHandler commandsHandler = new CommandsHandler(botUsername, silent, authorizer);
+    protected final ChatsTracker chatsTracker = new ChatsTracker(botUsername, chatsCollection);
 
     public TheFreeStuffBot() {
+        updatesPipe.registerHandler(chatsTracker);
         updatesPipe.registerHandler(commandsHandler);
 
         commandsHandler.newCommand()

@@ -46,28 +46,49 @@ public class DemoteCommand extends Command {
     @Override
     public void action(Message message, ParsedCommand parsedCommand) {
 
-        if (!message.isReply() || message.getReplyToMessage().getForwardFrom() == null) {
-            silent.compose().markdown("Send this command as a reply to a __forwarded__ message from the user you wish to demote ℹ")
+        if ((!message.isReply() || message.getReplyToMessage().getForwardFrom() == null) && parsedCommand.parameters.isBlank()) {
+            silent.compose().markdown("Send this command as a reply to a __forwarded__ message from the user you wish to demote ℹ\n"
+                    + "Or send the user id in `" + parsedCommand + " [userId]` ℹ")
                     .replyToOnlyInGroup(message).send();
             return;
         }
 
-        Message replyTo = message.getReplyToMessage();
-        User toDemote = replyTo.getForwardFrom();
+        int toDemote; //The id of the user to demote.
 
-        if (toDemote.getBot()) {
-            silent.compose().text("Heh, I already don't trust any bot to administrate me 😏") //EASTER_EGG
-                    .replyToOnlyInGroup(message).send();
-            return;
+        if (!parsedCommand.parameters.isBlank()) {
+            try {
+                toDemote = Integer.parseInt(parsedCommand.parameters);
+                Chat toPromoteChat = silent.execute(new GetChat().setChatId((long) toDemote));
+                if (toPromoteChat == null) {
+                    silent.compose().markdown("Invalid `userId` ⚠")
+                            .replyToOnlyInGroup(message).send();
+                    return;
+                }
+            } catch (NumberFormatException e) {
+                silent.compose().markdown("Invalid `userId` ⚠")
+                        .replyToOnlyInGroup(message).send();
+                return;
+            }
+        } else {
+            Message replyTo = message.getReplyToMessage();
+            User toDemoteUser = replyTo.getForwardFrom();
+
+            if (toDemoteUser.getBot()) {
+                silent.compose().text("Heh, I already don't trust any bot to administrate me 😏") //EASTER_EGG
+                        .replyToOnlyInGroup(message).send();
+                return;
+            }
+
+            toDemote = toDemoteUser.getId();
         }
 
-        if (toDemote.getId() == creatorID) {
+        if (toDemote == creatorID) {
             silent.compose().text("I won't ever demote my owner ❕") //EASTER_EGG
                     .replyToOnlyInGroup(message).send();
             return;
         }
 
-        Document profile = admins.find(eq("_id", toDemote.getId())).first();
+        Document profile = admins.find(eq("_id", toDemote)).first();
         if (profile == null) {
             silent.compose().text("The user is already not an admin to be demoted 😅")
                     .replyToOnlyInGroup(message).send();
@@ -99,18 +120,18 @@ public class DemoteCommand extends Command {
             return;
         }
 
-        boolean success = admins.deleteOne(eq("_id", toDemote.getId())).wasAcknowledged();
+        boolean success = admins.deleteOne(eq("_id", toDemote)).wasAcknowledged();
         if (!success) {
             silent.compose().text("An error occurred while demoting ⚠")
                     .replyToOnlyInGroup(message).send();
             return;
         }
 
-        success = admins.updateMany(eq("promotedBy", toDemote.getId()),
+        success = admins.updateMany(eq("promotedBy", toDemote),
                 set("promotedBy", message.getFrom().getId())).wasAcknowledged();
 
         if (!success) {
-            System.err.println("An error occurred while transferring sub-admins from " + toDemote.getId()
+            System.err.println("An error occurred while transferring sub-admins from " + toDemote
                     + " to " + message.getFrom().getId());
 
             silent.compose().text("An error occurred while transferring sub-admins ⚠")

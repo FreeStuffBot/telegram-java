@@ -7,6 +7,8 @@ import com.github.tudeteam.telegram.thefreestuffbot.framework.commands.Privacy;
 import com.github.tudeteam.telegram.thefreestuffbot.framework.utilities.SilentExecutor;
 import com.mongodb.client.MongoCollection;
 import org.bson.Document;
+import org.telegram.telegrambots.meta.api.methods.groupadministration.GetChat;
+import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.User;
 
@@ -31,34 +33,55 @@ public class PromoteCommand extends Command {
 
     @Override
     public void action(Message message, ParsedCommand parsedCommand) {
-        if (!message.isReply() || message.getReplyToMessage().getForwardFrom() == null) {
-            silent.compose().markdown("Send this command as a reply to a __forwarded__ message from the user you wish to promote ℹ")
+        if ((!message.isReply() || message.getReplyToMessage().getForwardFrom() == null) && parsedCommand.parameters.isBlank()) {
+            silent.compose().markdown("Send this command as a reply to a __forwarded__ message from the user you wish to promote ℹ\n" +
+                    "Or send the user id in `" + parsedCommand + " [userId]` ℹ")
                     .replyToOnlyInGroup(message).send();
             return;
         }
 
-        Message replyTo = message.getReplyToMessage();
-        User toPromote = replyTo.getForwardFrom();
+        int toPromote; //The id of the user to promote.
 
-        if (toPromote.getBot()) {
-            silent.compose().text("I won't trust that bot to administrate me 😒") //EASTER_EGG
-                    .replyToOnlyInGroup(message).send();
-            return;
+        if (!parsedCommand.parameters.isBlank()) {
+            try {
+                toPromote = Integer.parseInt(parsedCommand.parameters);
+                Chat toPromoteChat = silent.execute(new GetChat().setChatId((long) toPromote));
+                if (toPromoteChat == null) {
+                    silent.compose().markdown("Invalid `userId` ⚠")
+                            .replyToOnlyInGroup(message).send();
+                    return;
+                }
+            } catch (NumberFormatException e) {
+                silent.compose().markdown("Invalid `userId` ⚠")
+                        .replyToOnlyInGroup(message).send();
+                return;
+            }
+        } else {
+            Message replyTo = message.getReplyToMessage();
+            User toPromoteUser = replyTo.getForwardFrom();
+
+            if (toPromoteUser.getBot()) {
+                silent.compose().text("I won't trust that bot to administrate me 😒") //EASTER_EGG
+                        .replyToOnlyInGroup(message).send();
+                return;
+            }
+
+            toPromote = toPromoteUser.getId();
         }
 
-        if (toPromote.getId() == creatorID) {
+        if (toPromote == creatorID) {
             silent.compose().text("That's my owner 😊") //EASTER_EGG
                     .replyToOnlyInGroup(message).send();
             return;
         }
 
-        if (admins.find(eq("_id", toPromote.getId())).first() != null) {
+        if (admins.find(eq("_id", toPromote)).first() != null) {
             silent.compose().text("The user is already an admin 🙃")
                     .replyToOnlyInGroup(message).send();
             return;
         }
 
-        boolean success = admins.insertOne(new Document("_id", toPromote.getId())
+        boolean success = admins.insertOne(new Document("_id", toPromote)
                 .append("promotedBy", message.getFrom().getId())
                 .append("promotedAt", (int) (System.currentTimeMillis() / 1000)))
                 .wasAcknowledged();

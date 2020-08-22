@@ -28,7 +28,7 @@ public class ScrapeableGameInfo {
     public URI thumbnail;
 
     /**
-     * How many days the offer is valid.
+     * UNIX Timestamp in seconds - marks the time when the offer expires.
      */
     public int until;
 

@@ -22,7 +22,7 @@ public class GameData {
     /**
      * UNIX Timestamp in seconds - marks the last time the approval status has changed.
      */
-    public long published;
+    public int published;
 
     /**
      * Discord user id of the moderator, responsible for checking the info and publishing the announcement.

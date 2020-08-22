@@ -67,7 +67,13 @@ public class TheFreeStuffBot extends TelegramLongPollingBot {
                     if (toPromote == null) toPromote = replyTo.getFrom();
 
                     if (toPromote.getBot()) {
-                        silent.compose().text("I won't trust that bot to administrate me 😒")
+                        silent.compose().text("I won't trust that bot to administrate me 😒") //EASTER_EGG
+                                .replyToOnlyInGroup(message).send();
+                        return;
+                    }
+
+                    if (toPromote.getId() == botCreatorID) {
+                        silent.compose().text("That's my owner 😊") //EASTER_EGG
                                 .replyToOnlyInGroup(message).send();
                         return;
                     }
@@ -105,7 +111,13 @@ public class TheFreeStuffBot extends TelegramLongPollingBot {
                     if (toDemote == null) toDemote = replyTo.getFrom();
 
                     if (toDemote.getBot()) {
-                        silent.compose().text("Heh, I already don't trust any bot to administrate me 😏")
+                        silent.compose().text("Heh, I already don't trust any bot to administrate me 😏") //EASTER_EGG
+                                .replyToOnlyInGroup(message).send();
+                        return;
+                    }
+
+                    if (toDemote.getId() == botCreatorID) {
+                        silent.compose().text("I won't ever demote my owner ❕") //EASTER_EGG
                                 .replyToOnlyInGroup(message).send();
                         return;
                     }

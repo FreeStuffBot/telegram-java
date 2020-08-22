@@ -59,8 +59,8 @@ public class CommandBuilder {
         }
 
         @Override
-        public void action(Message source, ParsedCommand parsedCommand) {
-            action.accept(source, parsedCommand);
+        public void action(Message message, ParsedCommand parsedCommand) {
+            action.accept(message, parsedCommand);
         }
     }
 }

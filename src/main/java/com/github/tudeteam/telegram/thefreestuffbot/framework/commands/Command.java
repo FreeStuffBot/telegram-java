@@ -50,9 +50,9 @@ public abstract class Command {
     /**
      * Executes the command.
      *
-     * @param source        The message which triggered the command execution.
+     * @param message       The message which triggered the command execution.
      * @param parsedCommand The parsed command content from the message.
      */
-    public abstract void action(Message source, ParsedCommand parsedCommand);
+    public abstract void action(Message message, ParsedCommand parsedCommand);
 
 }

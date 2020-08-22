@@ -8,6 +8,8 @@ import com.github.tudeteam.telegram.thefreestuffbot.framework.mongodb.commands.a
 import com.github.tudeteam.telegram.thefreestuffbot.framework.pipes.ConsumeOncePipe;
 import com.github.tudeteam.telegram.thefreestuffbot.framework.pipes.Pipe;
 import com.github.tudeteam.telegram.thefreestuffbot.framework.utilities.SilentExecutor;
+import com.github.tudeteam.telegram.thefreestuffbot.structures.GameData;
+import com.google.gson.Gson;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
@@ -15,6 +17,11 @@ import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.objects.Update;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.mongodb.client.model.Filters.*;
 
 public class TheFreeStuffBot extends TelegramLongPollingBot {
 
@@ -24,31 +31,58 @@ public class TheFreeStuffBot extends TelegramLongPollingBot {
     protected static final int botCreatorID = Integer.parseInt(System.getenv("BOT_CREATORID"));
     protected static final String botDatabaseURI = System.getenv("BOT_DATABASE");
     /* End of configuration */
-
     protected static final MongoClient mongoClient = MongoClients.create(botDatabaseURI);
     protected static final MongoDatabase mongoDatabase = mongoClient.getDatabase("freestuffbot");
     protected static final MongoCollection<Document> adminsCollection = mongoDatabase.getCollection("telegram-admins");
     protected static final MongoCollection<Document> chatsCollection = mongoDatabase.getCollection("telegram-chats");
-
+    protected static final MongoCollection<Document> gamesCollection = mongoDatabase.getCollection("games");
     protected final Pipe<Update> updatesPipe = new ConsumeOncePipe<>();
     protected final SilentExecutor silent = new SilentExecutor(this);
     protected final AuthorizeWithMongoDB authorizer = new AuthorizeWithMongoDB(botCreatorID, silent, adminsCollection);
     protected final CommandsHandler commandsHandler = new CommandsHandler(botUsername, silent, authorizer);
     protected final ChatsTracker chatsTracker = new ChatsTracker(botUsername, chatsCollection);
+    Gson gson = new Gson();
 
     public TheFreeStuffBot() {
         updatesPipe.registerHandler(chatsTracker);
         updatesPipe.registerHandler(commandsHandler);
 
+        commandsHandler.registerCommand(new PromoteCommand(adminsCollection, silent, botCreatorID));
+        commandsHandler.registerCommand(new DemoteCommand(adminsCollection, silent, botCreatorID));
+
         commandsHandler.newCommand()
                 .name("ping")
                 .description("Pong 🏓")
                 .action((message, parsedCommand) -> silent.compose().text("Pong 🏓")
-                        .replyToOnlyInGroup(message).send())
+                        .chatId(message).send())
                 .build();
 
-        commandsHandler.registerCommand(new PromoteCommand(adminsCollection, silent, botCreatorID));
-        commandsHandler.registerCommand(new DemoteCommand(adminsCollection, silent, botCreatorID));
+        commandsHandler.newCommand()
+                .name("free")
+                .description("List currently free games")
+                .action((message, parsedCommand) -> {
+                    int currentTime = (int) (System.currentTimeMillis() / 1000L);
+
+                    List<String> games = new ArrayList<>();
+
+                    gamesCollection.find(and(
+                            eq("status", "published"),
+                            gte("info.until", currentTime)
+                    )).sort(new Document("published", -1))
+                            .forEach(document -> {
+                                GameData gameData = gson.fromJson(document.toJson(), GameData.class);
+                                games.add("• " + gameData.info.title);
+                            });
+
+                    if (games.isEmpty())
+                        silent.compose().text("There are no free games currently 😕")
+                                .chatId(message).send();
+                    else
+                        silent.compose().markdown("*Those games are currently free:*\n" + String.join("\n", games))
+                                .chatId(message).send();
+
+                })
+                .build();
     }
 
     /**

@@ -1,5 +1,6 @@
-package com.github.tudeteam.telegram.thefreestuffbot.framework.commands.authorizers;
+package com.github.tudeteam.telegram.thefreestuffbot.framework.mongodb.commands.authorizers;
 
+import com.github.tudeteam.telegram.thefreestuffbot.framework.commands.authorizers.BasicAuthorizer;
 import com.github.tudeteam.telegram.thefreestuffbot.framework.utilities.SilentExecutor;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;

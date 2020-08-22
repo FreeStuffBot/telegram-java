@@ -38,7 +38,7 @@ public class ChatsTracker implements Handler<Update> {
         if (!isNewChat(chat)) return;
         chats.insertOne(new Document("_id", chat.getId())
                 .append("type", getChatType(chat))
-                .append("discoveredAt", (int) (System.currentTimeMillis() / 1000)));
+                .append("discoveredAt", (int) (System.currentTimeMillis() / 1000L)));
     }
 
     protected void migrateChat(Message message) {

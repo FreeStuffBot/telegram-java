@@ -13,7 +13,7 @@ import static org.bson.BsonType.INT32;
 
 public class ConvertUntilIntoString {
     public static void main(String[] args) {
-        MongoClient mongoClient = MongoClients.create(System.getenv("database"));
+        MongoClient mongoClient = MongoClients.create();
         MongoDatabase mongoDatabase = mongoClient.getDatabase("freestuffbot");
         MongoCollection<Document> collection = mongoDatabase.getCollection("games");
 

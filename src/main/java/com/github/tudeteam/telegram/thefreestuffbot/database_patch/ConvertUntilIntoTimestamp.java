@@ -13,7 +13,7 @@ import static org.bson.BsonType.STRING;
 
 public class ConvertUntilIntoTimestamp {
     public static void main(String[] args) {
-        MongoClient mongoClient = MongoClients.create(System.getenv("database"));
+        MongoClient mongoClient = MongoClients.create();
         MongoDatabase mongoDatabase = mongoClient.getDatabase("freestuffbot");
         MongoCollection<Document> collection = mongoDatabase.getCollection("games");
 

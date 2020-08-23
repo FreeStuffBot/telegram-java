@@ -17,6 +17,8 @@ import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -80,6 +82,70 @@ public class TheFreeStuffBot extends TelegramLongPollingBot {
                     else
                         silent.compose().markdown("*Those games are currently free:*\n" + String.join("\n", games))
                                 .chatId(message).send();
+
+                })
+                .build();
+
+        commandsHandler.newCommand()
+                .name("menu")
+                .description("Configure the bot ⚙")
+                .action((message, parsedCommand) -> {
+
+                    InlineKeyboardMarkup notConfigured = new InlineKeyboardMarkup();
+                    notConfigured.getKeyboard().add(List.of(new InlineKeyboardButton()
+                            .setText("Enable announcements 📢")
+                            .setCallbackData("menu:announcements-enable")
+                    ));
+
+                    silent.compose().text("Configuration menu ⚙")
+                            .markup(notConfigured).chatId(message).send();
+
+                    InlineKeyboardMarkup configured = new InlineKeyboardMarkup();
+                    List<List<InlineKeyboardButton>> configuredKeyboard = configured.getKeyboard();
+
+                    configuredKeyboard.add(List.of(new InlineKeyboardButton()
+                            .setText("Disable announcements ⚠")
+                            .setCallbackData("menu:announcements-disable")
+                    ));
+                    configuredKeyboard.add(List.of(new InlineKeyboardButton()
+                            .setText("Currency used: $ - switch to €")
+                            .setCallbackData("menu:currency-set-eur")
+                    ));
+                    configuredKeyboard.add(List.of(new InlineKeyboardButton()
+                            .setText("Until format: date - switch to weekday")
+                            .setCallbackData("menu:until-set-weekday")
+                    ));
+                    configuredKeyboard.add(List.of(new InlineKeyboardButton()
+                            .setText("Filter low-quality games: ✅ - toggle")
+                            .setCallbackData("menu:trash-disable")
+                    ));
+                    configuredKeyboard.add(List.of(new InlineKeyboardButton()
+                            .setText("Minimal original price: $5 - change")
+                            .setCallbackData("menu:min-price-set")
+                    ));
+                    configuredKeyboard.add(List.of(new InlineKeyboardButton()
+                                    .setText("Support bot ♥")
+                                    .setCallbackData("menu:support-bot")
+                            , new InlineKeyboardButton()
+                                    .setText("Configuration help ℹ")
+                                    .setCallbackData("menu:help")
+                    ));
+
+                    silent.compose().text("Configuration menu ⚙")
+                            .markup(configured).chatId(message).send();
+
+                    InlineKeyboardMarkup deConfigured = new InlineKeyboardMarkup();
+                    deConfigured.getKeyboard().add(List.of(new InlineKeyboardButton()
+                            .setText("Enable announcements 📢")
+                            .setCallbackData("menu:announcements-enable")
+                    ));
+                    deConfigured.getKeyboard().add(List.of(new InlineKeyboardButton()
+                            .setText("Delete configuration ♻")
+                            .setCallbackData("menu:announcements-enable")
+                    ));
+
+                    silent.compose().text("Configuration menu ⚙")
+                            .markup(deConfigured).chatId(message).send();
 
                 })
                 .build();

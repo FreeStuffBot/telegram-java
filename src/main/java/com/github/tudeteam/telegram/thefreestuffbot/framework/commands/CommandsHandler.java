@@ -92,6 +92,19 @@ public class CommandsHandler implements Handler<Update> {
     }
 
     /**
+     * Gets a list of all currently registered commands.
+     *
+     * @return The registered commands.
+     */
+    public Command[] getCommands() {
+        Command[] commands = new Command[this.commands.size()];
+        int i = 0;
+        for (Map.Entry<String, Command> commandEntry : this.commands.entrySet())
+            commands[i++] = commandEntry.getValue();
+        return commands;
+    }
+
+    /**
      * Creates a new CommandBuilder which will automatically register the command when built.
      *
      * @return A CommandBuilder that will automatically register the command when built.

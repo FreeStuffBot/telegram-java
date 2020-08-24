@@ -1,6 +1,9 @@
 package com.github.tudeteam.telegram.thefreestuffbot;
 
+import com.github.tudeteam.telegram.thefreestuffbot.framework.commands.Command;
 import com.github.tudeteam.telegram.thefreestuffbot.framework.commands.CommandsHandler;
+import com.github.tudeteam.telegram.thefreestuffbot.framework.commands.Locality;
+import com.github.tudeteam.telegram.thefreestuffbot.framework.commands.Privacy;
 import com.github.tudeteam.telegram.thefreestuffbot.framework.mongodb.ChatsTracker;
 import com.github.tudeteam.telegram.thefreestuffbot.framework.mongodb.commands.DemoteCommand;
 import com.github.tudeteam.telegram.thefreestuffbot.framework.mongodb.commands.PromoteCommand;
@@ -16,7 +19,9 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
+import org.telegram.telegrambots.meta.api.methods.commands.SetMyCommands;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.commands.BotCommand;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 
 import java.util.ArrayList;
@@ -100,6 +105,31 @@ public class TheFreeStuffBot extends TelegramLongPollingBot {
                 })
                 .build();
 
+        commandsHandler.newCommand()
+                .name("update_commands")
+                .description("Update the public commands definition of the bot ⚙")
+                .privacy(Privacy.ADMIN)
+                .action((message, parsedCommand) -> {
+                    Command[] commands = commandsHandler.getCommands();
+                    List<BotCommand> botCommands = new ArrayList<>();
+
+                    for (Command command : commands) {
+                        if (command.locality == Locality.ALL) {
+                            if (command.privacy == Privacy.PUBLIC || command.privacy == Privacy.GROUP_ADMIN) {
+                                if (command.description != null) {
+                                    botCommands.add(new BotCommand()
+                                            .setCommand(command.name)
+                                            .setDescription(command.description));
+                                }
+                            }
+                        }
+                    }
+
+                    boolean success = silent.execute(new SetMyCommands().setCommands(botCommands));
+                    silent.compose().text(success ? "Updated commands definition successfully ✅" : "Failed to update commands definition ⚠")
+                            .replyToOnlyInGroup(message).send();
+                })
+                .build();
     }
 
     /**

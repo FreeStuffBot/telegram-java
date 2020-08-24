@@ -18,7 +18,6 @@ import org.bson.Document;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,17 +36,21 @@ public class TheFreeStuffBot extends TelegramLongPollingBot {
     protected static final MongoDatabase mongoDatabase = mongoClient.getDatabase("freestuffbot");
     protected static final MongoCollection<Document> adminsCollection = mongoDatabase.getCollection("telegram-admins");
     protected static final MongoCollection<Document> chatsCollection = mongoDatabase.getCollection("telegram-chats");
+    protected static final MongoCollection<Document> configCollection = mongoDatabase.getCollection("telegram-config");
     protected static final MongoCollection<Document> gamesCollection = mongoDatabase.getCollection("games");
     protected final Pipe<Update> updatesPipe = new ConsumeOncePipe<>();
     protected final SilentExecutor silent = new SilentExecutor(this);
     protected final AuthorizeWithMongoDB authorizer = new AuthorizeWithMongoDB(botCreatorID, silent, adminsCollection);
     protected final CommandsHandler commandsHandler = new CommandsHandler(botUsername, silent, authorizer);
     protected final ChatsTracker chatsTracker = new ChatsTracker(botUsername, chatsCollection);
+    protected final ConfigurationDB configurationDB = new ConfigurationDB(configCollection);
+    protected final MenuHandler menuHandler = new MenuHandler(silent, configurationDB, authorizer);
     Gson gson = new Gson();
 
     public TheFreeStuffBot() {
         updatesPipe.registerHandler(chatsTracker);
         updatesPipe.registerHandler(commandsHandler);
+        updatesPipe.registerHandler(menuHandler);
 
         commandsHandler.registerCommand(new PromoteCommand(adminsCollection, silent, botCreatorID));
         commandsHandler.registerCommand(new DemoteCommand(adminsCollection, silent, botCreatorID));
@@ -90,65 +93,13 @@ public class TheFreeStuffBot extends TelegramLongPollingBot {
                 .name("menu")
                 .description("Configure the bot ⚙")
                 .action((message, parsedCommand) -> {
-
-                    InlineKeyboardMarkup notConfigured = new InlineKeyboardMarkup();
-                    notConfigured.getKeyboard().add(List.of(new InlineKeyboardButton()
-                            .setText("Enable announcements 📢")
-                            .setCallbackData("menu:announcements-enable")
-                    ));
+                    InlineKeyboardMarkup markup = menuHandler.constructMenuKeyboard(message.getChatId());
 
                     silent.compose().text("Configuration menu ⚙")
-                            .markup(notConfigured).chatId(message).send();
-
-                    InlineKeyboardMarkup configured = new InlineKeyboardMarkup();
-                    List<List<InlineKeyboardButton>> configuredKeyboard = configured.getKeyboard();
-
-                    configuredKeyboard.add(List.of(new InlineKeyboardButton()
-                            .setText("Disable announcements ⚠")
-                            .setCallbackData("menu:announcements-disable")
-                    ));
-                    configuredKeyboard.add(List.of(new InlineKeyboardButton()
-                            .setText("Currency used: $ - switch to €")
-                            .setCallbackData("menu:currency-set-eur")
-                    ));
-                    configuredKeyboard.add(List.of(new InlineKeyboardButton()
-                            .setText("Until format: date - switch to weekday")
-                            .setCallbackData("menu:until-set-weekday")
-                    ));
-                    configuredKeyboard.add(List.of(new InlineKeyboardButton()
-                            .setText("Filter low-quality games: ✅ - toggle")
-                            .setCallbackData("menu:trash-disable")
-                    ));
-                    configuredKeyboard.add(List.of(new InlineKeyboardButton()
-                            .setText("Minimal original price: $5 - change")
-                            .setCallbackData("menu:min-price-set")
-                    ));
-                    configuredKeyboard.add(List.of(new InlineKeyboardButton()
-                                    .setText("Support bot ♥")
-                                    .setCallbackData("menu:support-bot")
-                            , new InlineKeyboardButton()
-                                    .setText("Configuration help ℹ")
-                                    .setCallbackData("menu:help")
-                    ));
-
-                    silent.compose().text("Configuration menu ⚙")
-                            .markup(configured).chatId(message).send();
-
-                    InlineKeyboardMarkup deConfigured = new InlineKeyboardMarkup();
-                    deConfigured.getKeyboard().add(List.of(new InlineKeyboardButton()
-                            .setText("Enable announcements 📢")
-                            .setCallbackData("menu:announcements-enable")
-                    ));
-                    deConfigured.getKeyboard().add(List.of(new InlineKeyboardButton()
-                            .setText("Delete configuration ♻")
-                            .setCallbackData("menu:announcements-enable")
-                    ));
-
-                    silent.compose().text("Configuration menu ⚙")
-                            .markup(deConfigured).chatId(message).send();
-
+                            .markup(markup).chatId(message).send();
                 })
                 .build();
+
     }
 
     /**

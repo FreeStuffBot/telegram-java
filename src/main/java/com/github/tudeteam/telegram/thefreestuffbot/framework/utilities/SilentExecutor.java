@@ -45,11 +45,13 @@ public class SilentExecutor {
         return new MessageBuilder(bot);
     }
 
-    public <T extends Serializable, Method extends BotApiMethod<T>, Callback extends SentCallback<T>> void executeAsync(Method method, Callback callback) {
+    public <T extends Serializable, Method extends BotApiMethod<T>, Callback extends SentCallback<T>> boolean executeAsync(Method method, Callback callback) {
         try {
             bot.executeAsync(method, callback);
+            return true;
         } catch (TelegramApiException e) {
             e.printStackTrace();
+            return false;
         }
     }
 

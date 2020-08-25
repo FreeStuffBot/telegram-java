@@ -1,5 +1,6 @@
 package com.github.tudeteam.telegram.thefreestuffbot;
 
+import com.github.tudeteam.telegram.thefreestuffbot.announcements.Announcements;
 import com.github.tudeteam.telegram.thefreestuffbot.framework.commands.Command;
 import com.github.tudeteam.telegram.thefreestuffbot.framework.commands.CommandsHandler;
 import com.github.tudeteam.telegram.thefreestuffbot.framework.commands.Locality;
@@ -18,6 +19,7 @@ import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
+import org.telegram.telegrambots.bots.DefaultBotOptions;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.commands.SetMyCommands;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -43,6 +45,14 @@ public class TheFreeStuffBot extends TelegramLongPollingBot {
     protected static final MongoCollection<Document> chatsCollection = mongoDatabase.getCollection("telegram-chats");
     protected static final MongoCollection<Document> configCollection = mongoDatabase.getCollection("telegram-config");
     protected static final MongoCollection<Document> gamesCollection = mongoDatabase.getCollection("games");
+    protected static final MongoCollection<Document> ongoingCollection = mongoDatabase.getCollection("telegram-ongoing");
+    protected static final MongoCollection<Document> processedCollection = mongoDatabase.getCollection("telegram-processed");
+    private static final DefaultBotOptions botOptions = new DefaultBotOptions();
+
+    static {
+        botOptions.setMaxThreads(6);
+    }
+
     protected final Pipe<Update> updatesPipe = new ConsumeOncePipe<>();
     protected final SilentExecutor silent = new SilentExecutor(this);
     protected final AuthorizeWithMongoDB authorizer = new AuthorizeWithMongoDB(botCreatorID, silent, adminsCollection);
@@ -50,9 +60,13 @@ public class TheFreeStuffBot extends TelegramLongPollingBot {
     protected final ChatsTracker chatsTracker = new ChatsTracker(botUsername, chatsCollection);
     protected final ConfigurationDB configurationDB = new ConfigurationDB(configCollection);
     protected final MenuHandler menuHandler = new MenuHandler(silent, configurationDB, authorizer);
+    protected final Announcements announcements = new Announcements(botCreatorID, this.exe, silent, ongoingCollection, processedCollection);
     Gson gson = new Gson();
 
     public TheFreeStuffBot() {
+        super(botOptions);
+        announcements.wakeUp();
+
         updatesPipe.registerHandler(chatsTracker);
         updatesPipe.registerHandler(commandsHandler);
         updatesPipe.registerHandler(menuHandler);
@@ -128,6 +142,79 @@ public class TheFreeStuffBot extends TelegramLongPollingBot {
                     boolean success = silent.execute(new SetMyCommands().setCommands(botCommands));
                     silent.compose().text(success ? "Updated commands definition successfully ✅" : "Failed to update commands definition ⚠")
                             .replyToOnlyInGroup(message).send();
+                })
+                .build();
+
+        commandsHandler.newCommand()
+                .name("announce_test")
+                .description("Send a test announcements to everyone 🙃")
+                .privacy(Privacy.ADMIN)
+                .action((message, parsedCommand) -> {
+                    Document document = new Document();
+                    document.put("startedAt", (int) (System.currentTimeMillis() / 1000L));
+                    document.put("finishedAt", null);
+                    document.put("type", "TEST");
+                    document.put("data", new Document("content", "This is a test announcements ℹ"));
+
+                    List<Long> pendingChats = new ArrayList<>();
+
+                    configCollection.find(eq("enabled", true)).forEach(config ->
+                            pendingChats.add(config.getLong("_id")));
+
+                    document.put("chats", new Document("pending", pendingChats)
+                            .append("processed", new ArrayList<>())
+                            .append("failed", new ArrayList<>()));
+
+                    document.put("reached", new Document("users", 0)
+                            .append("groups", 0)
+                            .append("supergroups", 0)
+                            .append("channels", 0));
+
+                    boolean success = ongoingCollection.insertOne(document).wasAcknowledged();
+
+                    silent.compose().text(success ? "Created a test announcement successfully ✅" : "Failed to create a test announcement ⚠")
+                            .replyToOnlyInGroup(message).send();
+
+                    announcements.wakeUp();
+                })
+                .build();
+
+        commandsHandler.newCommand()
+                .name("wake_up")
+                .description("Wakeup the announcements worker")
+                .privacy(Privacy.ADMIN)
+                .action((message, parsedCommand) -> {
+                    announcements.wakeUp();
+                    silent.compose().text("Waked up the worker successfully ✅")
+                            .replyToOnlyInGroup(message).send();
+                }).build();
+
+        commandsHandler.newCommand()
+                .name("requeue_failed")
+                .description("Requeue failed announcements")
+                .privacy(Privacy.ADMIN)
+                .action((message, parsedCommand) -> {
+                    List<Document> toRequeue = new ArrayList<>();
+
+                    processedCollection.find(not(size("chats.failed", 0))).forEach(document -> {
+                        Document chats = document.get("chats", Document.class);
+                        chats.put("pending", chats.getList("failed", Long.class));
+                        chats.put("failed", new ArrayList<>());
+
+                        toRequeue.add(document);
+                        processedCollection.deleteOne(eq("_id", document.get("_id")));
+                    });
+
+                    if (toRequeue.isEmpty())
+                        silent.compose().text("There are no failed announcements to requeue 😌")
+                                .replyToOnlyInGroup(message).send();
+                    else {
+                        ongoingCollection.insertMany(toRequeue);
+                        silent.compose().text("Requeued " + toRequeue.size() + " failed announcements ✅")
+                                .replyToOnlyInGroup(message).send();
+                    }
+
+                    announcements.wakeUp();
                 })
                 .build();
     }

@@ -4,15 +4,15 @@ import com.github.tudeteam.telegram.thefreestuffbot.framework.commands.Command;
 import com.github.tudeteam.telegram.thefreestuffbot.framework.commands.ParsedCommand;
 
 /**
- * An authorizer for commands execution by specific users.
+ * Determines if a user is allowed to have his command executed or not. (functional interface).
  */
 public interface Authorizer {
     /**
-     * Authorize the usage of a command.
+     * Determines if a user is allowed to have his command executed or not.
      *
-     * @param parsedCommand The command request parsed.
-     * @param command       The command under execution.
-     * @return {@code null} if the request is authorized, otherwise the reason why it was rejected.
+     * @param parsedCommand The parsed command request by the user.
+     * @param command       The command implementation to execute.
+     * @return {@code null} if the request was accepted, otherwise the reason why it was rejected.
      */
     String authorize(ParsedCommand parsedCommand, Command command);
 }

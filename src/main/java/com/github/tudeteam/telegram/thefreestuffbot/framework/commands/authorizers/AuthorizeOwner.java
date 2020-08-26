@@ -1,21 +1,26 @@
 package com.github.tudeteam.telegram.thefreestuffbot.framework.commands.authorizers;
 
+import com.github.tudeteam.telegram.thefreestuffbot.framework.utilities.SilentExecutor;
 import org.telegram.telegrambots.meta.api.objects.Message;
 
 /**
- * An authorizer which authorizes a single owner for non-public commands.
- * Public commands are authorized for everyone.
+ * A {@code StandardAuthorizer} which authorizes a specific "Bot Owner" for {@code OWNER} and {@code ADMIN} commands.
  */
-public class AuthorizeOwner implements BasicAuthorizer {
-
-    public final int ownerId;
+public class AuthorizeOwner extends StandardAuthorizer {
 
     /**
-     * Create an authorizer of a single owner.
-     *
-     * @param ownerId The Telegram id of the owner user.
+     * The Telegram userId of the bot's owner.
      */
-    public AuthorizeOwner(int ownerId) {
+    protected final int ownerId;
+
+    /**
+     * Constructs a new instance.
+     *
+     * @param silent  The silent executor to use for requesting more information about the users.
+     * @param ownerId The Telegram userId of the bot's owner.
+     */
+    public AuthorizeOwner(SilentExecutor silent, int ownerId) {
+        super(silent);
         this.ownerId = ownerId;
     }
 
@@ -26,11 +31,6 @@ public class AuthorizeOwner implements BasicAuthorizer {
 
     @Override
     public boolean isAdmin(Message message) {
-        return false;
-    }
-
-    @Override
-    public boolean isGroupAdmin(Message message) {
         return false;
     }
 }

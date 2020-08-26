@@ -1,5 +1,6 @@
 package com.github.tudeteam.telegram.thefreestuffbot.framework.pipes;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashSet;
@@ -12,6 +13,7 @@ class ConsumeOncePipeTest extends PipeTest {
     ConsumeOncePipe<Object> consumeOncePipeSet = new ConsumeOncePipe<>(new HashSet<>());
 
     @Test
+    @DisplayName("Consumes events only once")
     void testConsumeOncePipe() {
         assertFalse(consumeOncePipe.process(new Object()), "the pipe consumed the event with no handlers");
         assertTrue(consumeOncePipe.registerHandler((event -> false)), "failed to register test handler");
@@ -26,6 +28,7 @@ class ConsumeOncePipeTest extends PipeTest {
     }
 
     @Test
+    @DisplayName("Can be used with a HashSet")
     void testPipeUsingSet() {
         Handler<Object> h1 = (event -> false);
         Handler<Object> h2 = (event -> false);
@@ -43,6 +46,7 @@ class ConsumeOncePipeTest extends PipeTest {
     }
 
     @Test
+    @DisplayName("Provides a list of it's handlers")
     void testGetHandlers() {
         for (int i = 0; i < 5; i++)
             assertTrue(consumeOncePipe.registerHandler((event) -> false), "Failed to register handler #" + i);
@@ -55,12 +59,14 @@ class ConsumeOncePipeTest extends PipeTest {
     }
 
     @Test
+    @DisplayName("Registers handlers")
     void executeHandlerRegistrationTest() {
         testHandlerRegistration(consumeOncePipe);
         testHandlerRegistration(consumeOncePipeSet);
     }
 
     @Test
+    @DisplayName("Unregisters handlers")
     void executeNullTriggerTest() {
         testNullTrigger(consumeOncePipe);
         testNullTrigger(consumeOncePipeSet);

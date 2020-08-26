@@ -5,7 +5,7 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import java.util.function.BiConsumer;
 
 /**
- * A builder class for commands, for creating commands with a sweeter syntax.
+ * A commands builder class, for creating commands with a sweeter syntax.
  */
 public class CommandBuilder {
     protected String name;

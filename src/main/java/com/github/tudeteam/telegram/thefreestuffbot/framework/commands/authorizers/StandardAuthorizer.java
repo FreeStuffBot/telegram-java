@@ -6,7 +6,7 @@ import org.telegram.telegrambots.meta.api.objects.ChatMember;
 import org.telegram.telegrambots.meta.api.objects.Message;
 
 /**
- * A {@code BasicAuthorizer} which has a SilentExecutor for requesting extra information about it's users.
+ * A {@code BasicAuthorizer} which has a {@code SilentExecutor} for requesting extra information about its' users.
  * <p>
  * It has the isGroupAdmin method implemented by requesting the {@code ChatMember} data about the user.
  */

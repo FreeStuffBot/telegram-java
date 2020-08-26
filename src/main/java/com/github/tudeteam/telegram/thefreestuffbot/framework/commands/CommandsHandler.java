@@ -41,7 +41,7 @@ public class CommandsHandler implements Handler<Update> {
      * @param silent      A silent executor for the bot.
      */
     public CommandsHandler(String botUsername, SilentExecutor silent) {
-        this(botUsername, silent, new DefaultAuthorizer());
+        this(botUsername, silent, new DefaultAuthorizer(silent));
     }
 
     /**

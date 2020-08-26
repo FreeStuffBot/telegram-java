@@ -1,26 +1,27 @@
 package com.github.tudeteam.telegram.thefreestuffbot.framework.commands;
 
 /**
- * The availability of the command by the user permissions level.
+ * Represents who can use the command.
  */
 public enum Privacy {
+
     /**
-     * The command can be used by anyone.
+     * Can be used by anyone.
      */
     PUBLIC,
 
     /**
-     * The command can be used only by group admins.
+     * Can be used only by group admins, bot admins and bot owners.
      */
     GROUP_ADMIN,
 
     /**
-     * The command can be only used by a bot admin.
+     * Can be only used by bot admins and bot owners.
      */
     ADMIN,
 
     /**
-     * The command can be used only by the owners of the bot.
+     * Can be used only by the bot owners.
      */
     OWNER
 }

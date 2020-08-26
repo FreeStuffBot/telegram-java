@@ -1,21 +1,22 @@
 package com.github.tudeteam.telegram.thefreestuffbot.framework.commands;
 
 /**
- * The availability of the command by chat type.
+ * Represents where the command can be used.
  */
 public enum Locality {
+
     /**
-     * The command can be used anywhere (except channels).
+     * Can be used anywhere (except channels).
      */
     ALL,
 
     /**
-     * The command can be only used in private messages.
+     * Can be used only in private messages.
      */
     USER,
 
     /**
-     * The command can be only used in groups.
+     * Can be used only in groups.
      */
     GROUP
 }

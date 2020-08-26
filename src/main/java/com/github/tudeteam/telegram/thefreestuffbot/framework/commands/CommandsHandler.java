@@ -3,7 +3,6 @@ package com.github.tudeteam.telegram.thefreestuffbot.framework.commands;
 import com.github.tudeteam.telegram.thefreestuffbot.framework.commands.authorizers.Authorizer;
 import com.github.tudeteam.telegram.thefreestuffbot.framework.commands.authorizers.DefaultAuthorizer;
 import com.github.tudeteam.telegram.thefreestuffbot.framework.pipes.Handler;
-import com.github.tudeteam.telegram.thefreestuffbot.framework.utilities.CommandBuilder;
 import com.github.tudeteam.telegram.thefreestuffbot.framework.utilities.SilentExecutor;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -11,6 +10,9 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Handles the commands processing and execution for bots.
+ */
 public class CommandsHandler implements Handler<Update> {
 
     /**

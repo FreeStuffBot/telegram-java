@@ -1,5 +1,5 @@
 /**
- * A system for processing events, built for Telegram updates.
+ * Pipes are a system for processing events, built for Telegram updates.
  * <p>
  * It allows bots to be more modular and object-oriented, by defining a shared interface for updates handlers.
  * <p>

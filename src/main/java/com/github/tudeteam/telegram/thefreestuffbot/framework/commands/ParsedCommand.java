@@ -3,6 +3,13 @@ package com.github.tudeteam.telegram.thefreestuffbot.framework.commands;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.MessageEntity;
 
+/**
+ * Represents a parsed command message from a user.
+ * <p>
+ * {@code ParsedCommand} is commands requested by users, constructed from Telegram updates.
+ * <p>
+ * {@code Command} is an executable command provided by the bot, constructed at the bot's initialization.
+ */
 public class ParsedCommand {
     /**
      * The name of the command, ex: {@code "ping"}.
@@ -24,7 +31,15 @@ public class ParsedCommand {
      */
     public final Message origin;
 
-    private ParsedCommand(String name, String username, String parameters, Message origin) {
+    /**
+     * Constructs a new instance.
+     *
+     * @param name       The name of the command, ex: {@code "ping"}.
+     * @param username   The username included in the message, null if absent, ex: <i>MyBot</i> for <i>/ping@MyBot</i>.
+     * @param parameters Any text present after the command, with whitespace trimmed, can be null, ex: <i>data</i> for <i>/ping@MyBot data</i>.
+     * @param origin     The origin message of the command.
+     */
+    protected ParsedCommand(String name, String username, String parameters, Message origin) {
         this.name = name;
         this.username = username;
         this.parameters = parameters;

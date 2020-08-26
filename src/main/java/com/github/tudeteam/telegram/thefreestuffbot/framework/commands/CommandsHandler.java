@@ -121,26 +121,6 @@ public class CommandsHandler implements Handler<Update> {
     }
 
     /**
-     * Check if the command's locality allows using it.
-     *
-     * @param parsedCommand The parsed command request.
-     * @param command       The command to execute.
-     * @return {@code null} if it was valid, otherwise the rejection reason.
-     */
-    protected String checkCommandLocality(ParsedCommand parsedCommand, Command command) {
-        //A group command used under private messages.
-        if (command.locality == Locality.GROUP && parsedCommand.origin.isUserMessage())
-            return parsedCommand + " is available only in groups ⚠";
-
-        //A private messages command used under a group.
-        if (command.locality == Locality.USER && !parsedCommand.origin.isUserMessage())
-            return parsedCommand + " is available only in private chats ⚠";
-
-        //The command's locality is valid.
-        return null;
-    }
-
-    /**
      * Execute the command catching an exception necessary.
      *
      * @param message       The origin message of the command.
@@ -187,14 +167,7 @@ public class CommandsHandler implements Handler<Update> {
             return true; //Update consumed, command not found.
         }
 
-        //Check the locality of the command if allows using it.
-        String localityRejection = checkCommandLocality(parsedCommand, command);
-        if (localityRejection != null) {
-            silent.compose().text(localityRejection).replyToOnlyInGroup(message).send();
-            return true; //The update got consumed, the command's locality doesn't allow using it.
-        }
-
-        //Check the access level of the user if allows to use the command.
+        //Check if it's allowed to execute the command.
         String rejectionReason = authorizer.authorize(parsedCommand, command);
         if (rejectionReason != null) {
             silent.compose().text(rejectionReason).replyToOnlyInGroup(message).send();

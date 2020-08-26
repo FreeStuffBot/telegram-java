@@ -4,6 +4,10 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 
 /**
  * Represents a command which can be executed by the bot.
+ * <p>
+ * {@code Command} is an executable command provided by the bot, constructed at the bot's initialization.
+ * <p>
+ * {@code ParsedCommand} is commands requested by users, constructed from Telegram updates.
  */
 public abstract class Command {
 
@@ -30,11 +34,11 @@ public abstract class Command {
     /**
      * Constructs an instance of the command.
      *
-     * @param name        The name of the command, ex: {@code "start"} for <i>/start</i>.
-     * @param description The description of the command, can be null for no description.
-     * @param locality    The availability of the command by chat type.
-     * @param privacy     The availability of the command by the user permissions level.
-     * @throws NullPointerException when one of the non-optional parameters is null.
+     * @param name        The name of the command, ex: {@code "start"} for <i>/start</i>. Required.
+     * @param description The description of the command, can be {@code null} for no description. Optional.
+     * @param locality    The availability of the command by chat type. Required.
+     * @param privacy     The availability of the command by the user permissions level. Required.
+     * @throws NullPointerException when one of the non-optional parameters is null. Required.
      */
     public Command(String name, String description, Locality locality, Privacy privacy) throws NullPointerException {
         if (name == null) throw new NullPointerException("name can't be null!");

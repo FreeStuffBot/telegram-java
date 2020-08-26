@@ -333,6 +333,7 @@ public class MessageBuilder {
      * Prints a stacktrace into {@code stderr} or failure.
      *
      * @return The sent message on success, {@code null} otherwise.
+     * @throws TelegramApiException on failure.
      */
     public Message execute() throws TelegramApiException {
         return bot.execute(sendMessage);

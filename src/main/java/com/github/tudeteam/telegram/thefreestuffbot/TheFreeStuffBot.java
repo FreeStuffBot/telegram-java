@@ -55,7 +55,7 @@ public class TheFreeStuffBot extends TelegramLongPollingBot {
 
     protected final Pipe<Update> updatesPipe = new ConsumeOncePipe<>();
     protected final SilentExecutor silent = new SilentExecutor(this);
-    protected final AuthorizeWithMongoDB authorizer = new AuthorizeWithMongoDB(botCreatorID, silent, adminsCollection);
+    protected final AuthorizeWithMongoDB authorizer = new AuthorizeWithMongoDB(silent, botCreatorID, adminsCollection);
     protected final CommandsHandler commandsHandler = new CommandsHandler(botUsername, silent, authorizer);
     protected final ChatsTracker chatsTracker = new ChatsTracker(botUsername, chatsCollection);
     protected final ConfigurationDB configurationDB = new ConfigurationDB(configCollection);

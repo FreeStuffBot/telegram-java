@@ -2,10 +2,15 @@ package com.github.tudeteam.telegram.thefreestuffbot.announcements;
 
 import com.github.tudeteam.telegram.thefreestuffbot.framework.utilities.ChatUtilities;
 import com.github.tudeteam.telegram.thefreestuffbot.framework.utilities.SilentExecutor;
+import com.github.tudeteam.telegram.thefreestuffbot.structures.GameInfo;
+import com.google.gson.Gson;
 import com.mongodb.client.MongoCollection;
 import org.bson.Document;
 import org.bson.types.ObjectId;
+import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
 import java.util.List;
 
@@ -13,6 +18,8 @@ import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Updates.*;
 
 public abstract class AnnouncementWorker implements Runnable {
+
+    private static final Gson gson = new Gson();
 
     /**
      * The maximum number of announcements processed in each second.
@@ -112,6 +119,27 @@ public abstract class AnnouncementWorker implements Runnable {
             String content = announcementData.getString("content");
             return silent.compose().text(String.valueOf(content))
                     .chatId(chatId).send();
+        } else if (announcementType.equals("GAME")) {
+            GameInfo gameInfo = gson.fromJson(announcementData.toJson(), GameInfo.class);
+
+
+            InlineKeyboardMarkup inlineMarkup = new InlineKeyboardMarkup();
+            inlineMarkup.getKeyboard().add(List.of(new InlineKeyboardButton()
+                    .setText("Get")
+                    .setUrl(gameInfo.org_url.toString())
+            ));
+
+            return silent.execute(new SendPhoto()
+                    .setChatId(chatId)
+                    .setPhoto(gameInfo.thumbnail.toString())
+                    .setCaption(String.format("<b>Free Game!</b>\n<b>%s</b>\n<s>$%s</s> <b>Free</b> • %s\nvia freestuffbot.xyz",
+                            gameInfo.title,
+                            gameInfo.org_price.dollar,
+                            gameInfo.store.name()
+                    ))
+                    .setParseMode("HTML")
+                    .setReplyMarkup(inlineMarkup)
+            );
         } else {
             System.err.println("Unsupported announcement type '" + announcementType + "' for chat: " + chatId);
             return null;

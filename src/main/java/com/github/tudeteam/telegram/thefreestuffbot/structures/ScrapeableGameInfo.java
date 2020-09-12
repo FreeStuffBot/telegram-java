@@ -40,5 +40,28 @@ public class ScrapeableGameInfo {
     public static class Price {
         public double euro;
         public double dollar;
+
+        /**
+         * Gets the price of the game in the requested currency.
+         *
+         * @param currency The currency to use.
+         * @return The price of the game in the requested currency.
+         */
+        public double inCurrency(Currency currency) {
+            return currency == Currency.USD ? dollar : euro;
+        }
+
+        /**
+         * Converts the price into a string with a specific currency.
+         *
+         * @param currency The currency to use.
+         * @return The formatted string.
+         */
+        public String toString(Currency currency) {
+            if (currency == Currency.USD)
+                return "$" + dollar;
+            else
+                return "€" + euro;
+        }
     }
 }

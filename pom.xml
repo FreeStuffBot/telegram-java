@@ -19,12 +19,6 @@
   </properties>
 
   <dependencies>
-    <!-- The ability bot framework -->
-    <dependency>
-      <groupId>org.telegram</groupId>
-      <artifactId>telegrambots-abilities</artifactId>
-      <version>4.9.1</version>
-    </dependency>
     <!-- The Telegram API library -->
     <dependency>
       <groupId>org.telegram</groupId>

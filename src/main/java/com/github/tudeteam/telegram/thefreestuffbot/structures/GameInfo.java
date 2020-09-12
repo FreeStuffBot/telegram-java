@@ -30,4 +30,16 @@ public class GameInfo extends ScrapeableGameInfo {
      * Type of announcement.
      */
     public AnnouncementType type;
+
+    /**
+     * Checks whether this game is marked as trash (low-quality) or not.
+     *
+     * @return {@code true} if this game is marked as trash (low-quality), {@code false} otherwise.
+     */
+    public boolean isTrash() {
+        for (GameFlag flag : flags)
+            if (flag == GameFlag.TRASH)
+                return true;
+        return false;
+    }
 }

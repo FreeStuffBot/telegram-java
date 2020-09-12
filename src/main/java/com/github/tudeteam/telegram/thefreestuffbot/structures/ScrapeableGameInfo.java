@@ -1,6 +1,10 @@
 package com.github.tudeteam.telegram.thefreestuffbot.structures;
 
 import java.net.URI;
+import java.time.LocalDate;
+
+import static java.time.format.TextStyle.FULL_STANDALONE;
+import static java.util.Locale.ENGLISH;
 
 /**
  * The data that can be found by the web scrapers.
@@ -36,6 +40,20 @@ public class ScrapeableGameInfo {
      * Nullable (not in GameInfo). For steam games, subids with a space between, for other stores just an empty string.
      */
     public String steamSubids;
+
+    /**
+     * Formats the until date of the game.
+     *
+     * @param untilFormat The format to use.
+     * @return The until date formatted into a String.
+     */
+    public String formatUntil(UntilFormat untilFormat) {
+        LocalDate date = LocalDate.ofEpochDay(until / 86400); //86400 is the number of seconds in a day.
+        if (untilFormat == UntilFormat.DATE)
+            return date.toString();
+        else
+            return "next " + date.getDayOfWeek().getDisplayName(FULL_STANDALONE, ENGLISH);
+    }
 
     public static class Price {
         public double euro;

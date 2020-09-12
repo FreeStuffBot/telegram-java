@@ -60,7 +60,7 @@ public class TheFreeStuffBot extends TelegramLongPollingBot {
     protected final ChatsTracker chatsTracker = new ChatsTracker(botUsername, chatsCollection);
     protected final ConfigurationDB configurationDB = new ConfigurationDB(configCollection);
     protected final MenuHandler menuHandler = new MenuHandler(silent, configurationDB, authorizer);
-    protected final Announcements announcements = new Announcements(botCreatorID, this.exe, silent, ongoingCollection, processedCollection);
+    protected final Announcements announcements = new Announcements(botCreatorID, this.exe, silent, configurationDB, ongoingCollection, processedCollection);
     Gson gson = new Gson();
 
     public TheFreeStuffBot() {
@@ -185,7 +185,7 @@ public class TheFreeStuffBot extends TelegramLongPollingBot {
                 .privacy(Privacy.ADMIN)
                 .action((message, parsedCommand) -> {
                     announcements.wakeUp();
-                    silent.compose().text("Waked up the worker successfully ✅")
+                    silent.compose().text("Woke up the worker successfully ✅")
                             .replyToOnlyInGroup(message).send();
                 }).build();
 

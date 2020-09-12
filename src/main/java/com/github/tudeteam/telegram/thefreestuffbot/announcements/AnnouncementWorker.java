@@ -1,7 +1,9 @@
 package com.github.tudeteam.telegram.thefreestuffbot.announcements;
 
+import com.github.tudeteam.telegram.thefreestuffbot.ConfigurationDB;
 import com.github.tudeteam.telegram.thefreestuffbot.framework.utilities.ChatUtilities;
 import com.github.tudeteam.telegram.thefreestuffbot.framework.utilities.SilentExecutor;
+import com.github.tudeteam.telegram.thefreestuffbot.structures.ChatConfiguration;
 import com.github.tudeteam.telegram.thefreestuffbot.structures.GameInfo;
 import com.google.gson.Gson;
 import com.mongodb.client.MongoCollection;
@@ -19,17 +21,21 @@ import static com.mongodb.client.model.Updates.*;
 
 public abstract class AnnouncementWorker implements Runnable {
 
-    private static final Gson gson = new Gson();
-
     /**
      * The maximum number of announcements processed in each second.
      */
     public static final int rateLimit = 5;
-
+    private static final Gson gson = new Gson();
+    private static final Message nullMessage = new Message();
     /**
      * The silent executor used for executing the Telegram requests.
      */
     protected final SilentExecutor silent;
+
+    /**
+     * The chats configuration database.
+     */
+    protected final ConfigurationDB db;
 
     /**
      * The MongoDB collection containing the ongoing (under processing) announcements.
@@ -61,8 +67,9 @@ public abstract class AnnouncementWorker implements Runnable {
      */
     private int currentRate;
 
-    public AnnouncementWorker(SilentExecutor silent, MongoCollection<Document> ongoing, ObjectId announcementId, String announcementType, Document announcementData) {
+    public AnnouncementWorker(SilentExecutor silent, ConfigurationDB db, MongoCollection<Document> ongoing, ObjectId announcementId, String announcementType, Document announcementData) {
         this.silent = silent;
+        this.db = db;
         this.ongoing = ongoing;
         this.announcementId = announcementId;
         this.announcementType = announcementType;
@@ -122,6 +129,16 @@ public abstract class AnnouncementWorker implements Runnable {
         } else if (announcementType.equals("GAME")) {
             GameInfo gameInfo = gson.fromJson(announcementData.toJson(), GameInfo.class);
 
+            ChatConfiguration configuration = db.getConfiguration(chatId);
+            //Cancel the announcement if:
+            //- The chat's configuration was deleted.
+            if (configuration == null) return nullMessage;
+            //- The chat's has the announcements disabled.
+            if (!configuration.enabled) return nullMessage;
+            //- It's a trash game announcement and the chat has them filtered.
+            if (!configuration.trash && gameInfo.isTrash()) return nullMessage;
+            //- The game's price is lower than the minimum price set for this channel.
+            if (configuration.minPrice > gameInfo.price.inCurrency(configuration.currency)) return nullMessage;
 
             InlineKeyboardMarkup inlineMarkup = new InlineKeyboardMarkup();
             inlineMarkup.getKeyboard().add(List.of(new InlineKeyboardButton()
@@ -132,10 +149,11 @@ public abstract class AnnouncementWorker implements Runnable {
             return silent.execute(new SendPhoto()
                     .setChatId(chatId)
                     .setPhoto(gameInfo.thumbnail.toString())
-                    .setCaption(String.format("<b>Free Game!</b>\n<b>%s</b>\n<s>$%s</s> <b>Free</b> • %s\nvia freestuffbot.xyz",
+                    .setCaption(String.format("<b>Free Game!</b>\n<b>%s</b>\n<s>%s</s> <b>Free</b> until %s • %s\nvia freestuffbot.xyz",
                             gameInfo.title,
-                            gameInfo.org_price.dollar,
-                            gameInfo.store.name()
+                            gameInfo.org_price.toString(configuration.currency),
+                            gameInfo.formatUntil(configuration.untilFormat),
+                            gameInfo.store.toString()
                     ))
                     .setParseMode("HTML")
                     .setReplyMarkup(inlineMarkup)
@@ -165,7 +183,11 @@ public abstract class AnnouncementWorker implements Runnable {
 
             if (message == null)
                 ongoing.updateOne(eq("_id", announcementId), push("chats.failed", chatId));
-            else {
+            else if (message == nullMessage) {
+                ongoing.updateOne(eq("_id", announcementId),
+                        push("chats.processed", chatId)
+                );
+            } else {
                 String chatCategory = ChatUtilities.getChatType(message.getChat()).name().toLowerCase() + "s";
                 ongoing.updateOne(eq("_id", announcementId), combine(
                         inc("reached." + chatCategory, 1),

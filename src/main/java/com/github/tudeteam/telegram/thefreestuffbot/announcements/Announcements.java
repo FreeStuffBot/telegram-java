@@ -1,5 +1,6 @@
 package com.github.tudeteam.telegram.thefreestuffbot.announcements;
 
+import com.github.tudeteam.telegram.thefreestuffbot.ConfigurationDB;
 import com.github.tudeteam.telegram.thefreestuffbot.framework.utilities.SilentExecutor;
 import com.mongodb.client.MongoCollection;
 import org.bson.Document;
@@ -16,6 +17,7 @@ public class Announcements {
     protected final int creatorId;
     protected final ExecutorService executor;
     protected final SilentExecutor silent;
+    protected final ConfigurationDB db;
     protected final MongoCollection<Document> ongoingCollection;
     protected final MongoCollection<Document> processedCollection;
     protected final Object lock = new Object();
@@ -23,10 +25,11 @@ public class Announcements {
     protected ObjectId activeId = null;
     protected int activeWorkers;
 
-    public Announcements(int creatorId, ExecutorService executor, SilentExecutor silent, MongoCollection<Document> ongoingCollection, MongoCollection<Document> processedCollection) {
+    public Announcements(int creatorId, ExecutorService executor, SilentExecutor silent, ConfigurationDB db, MongoCollection<Document> ongoingCollection, MongoCollection<Document> processedCollection) {
         this.creatorId = creatorId;
         this.executor = executor;
         this.silent = silent;
+        this.db = db;
         this.ongoingCollection = ongoingCollection;
         this.processedCollection = processedCollection;
     }
@@ -52,7 +55,7 @@ public class Announcements {
     protected void activateWorkers(String announcementType, Document announcementData) {
         activeWorkers = maxActiveWorkers;
         for (int i = 0; i < maxActiveWorkers; i++) {
-            executor.submit(new AnnouncementWorker(silent, ongoingCollection, activeId, announcementType, announcementData) {
+            executor.submit(new AnnouncementWorker(silent, db, ongoingCollection, activeId, announcementType, announcementData) {
                 @Override
                 protected void finishedQueue() {
                     synchronized (lock) {

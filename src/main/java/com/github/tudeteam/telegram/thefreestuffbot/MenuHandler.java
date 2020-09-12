@@ -261,7 +261,7 @@ public class MenuHandler implements Handler<Update> {
                     else
                         response.setText("Games announcements are not enabled ⚠");
 
-                    updateMenuKeyboard(menuMessage);
+                    //updateMenuKeyboard(menuMessage);
                 }
                 break;
             }

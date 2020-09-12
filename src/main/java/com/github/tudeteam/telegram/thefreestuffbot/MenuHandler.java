@@ -8,10 +8,7 @@ import com.github.tudeteam.telegram.thefreestuffbot.structures.Currency;
 import com.github.tudeteam.telegram.thefreestuffbot.structures.UntilFormat;
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageReplyMarkup;
-import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.User;
+import org.telegram.telegrambots.meta.api.objects.*;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
@@ -112,11 +109,17 @@ public class MenuHandler implements Handler<Update> {
      * @return {@code true} if it was authorized.
      */
     protected boolean isAuthorized(CallbackQuery query) {
+
         //A fake message object to use the CommandsAuthorizer for authorizing the query :p
         Message fakeMessage = new Message() {
             @Override
             public User getFrom() {
                 return query.getFrom();
+            }
+
+            @Override
+            public Chat getChat() {
+                return query.getMessage().getChat();
             }
 
             @Override

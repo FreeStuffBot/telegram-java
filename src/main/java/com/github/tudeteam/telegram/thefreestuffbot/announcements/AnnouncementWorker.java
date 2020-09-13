@@ -24,7 +24,7 @@ public abstract class AnnouncementWorker implements Runnable {
     /**
      * The maximum number of announcements processed in each second.
      */
-    public static final int rateLimit = 5;
+    public static final int rateLimit = 4;
     private static final Gson gson = new Gson();
     private static final Message nullMessage = new Message();
     /**

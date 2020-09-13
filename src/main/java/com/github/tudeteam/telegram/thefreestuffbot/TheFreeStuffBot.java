@@ -60,7 +60,7 @@ public class TheFreeStuffBot extends TelegramLongPollingBot {
     protected final ChatsTracker chatsTracker = new ChatsTracker(botUsername, chatsCollection);
     protected final ConfigurationDB configurationDB = new ConfigurationDB(configCollection);
     protected final MenuHandler menuHandler = new MenuHandler(silent, configurationDB, authorizer);
-    protected final Announcements announcements = new Announcements(botCreatorID, this.exe, silent, configurationDB, ongoingCollection, processedCollection);
+    protected final Announcements announcements = new Announcements(botCreatorID, this.exe, silent, configurationDB, ongoingCollection, processedCollection, gamesCollection);
     Gson gson = new Gson();
 
     public TheFreeStuffBot() {

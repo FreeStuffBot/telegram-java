@@ -43,6 +43,11 @@ public abstract class AnnouncementWorker implements Runnable {
     protected final MongoCollection<Document> ongoing;
 
     /**
+     * The MongoDB collection containing the games information.
+     */
+    protected final MongoCollection<Document> games;
+
+    /**
      * The announcement to process.
      */
     protected final ObjectId announcementId;
@@ -67,10 +72,11 @@ public abstract class AnnouncementWorker implements Runnable {
      */
     private int currentRate;
 
-    public AnnouncementWorker(SilentExecutor silent, ConfigurationDB db, MongoCollection<Document> ongoing, ObjectId announcementId, String announcementType, Document announcementData) {
+    public AnnouncementWorker(SilentExecutor silent, ConfigurationDB db, MongoCollection<Document> ongoing, MongoCollection<Document> games, ObjectId announcementId, String announcementType, Document announcementData) {
         this.silent = silent;
         this.db = db;
         this.ongoing = ongoing;
+        this.games = games;
         this.announcementId = announcementId;
         this.announcementType = announcementType;
         this.announcementData = announcementData;
@@ -127,7 +133,14 @@ public abstract class AnnouncementWorker implements Runnable {
             return silent.compose().text(String.valueOf(content))
                     .chatId(chatId).send();
         } else if (announcementType.equals("GAME")) {
-            GameInfo gameInfo = gson.fromJson(announcementData.toJson(), GameInfo.class);
+            int gameId = announcementData.getInteger("_id");
+            Document gameDocument = games.find(eq("_id", gameId)).first();
+            if (gameDocument == null) {
+                new Exception("Couldn't fetch game's information for the announcement!").printStackTrace();
+                return null;
+            }
+
+            GameInfo gameInfo = gson.fromJson(gameDocument.get("info", Document.class).toJson(), GameInfo.class);
 
             ChatConfiguration configuration = db.getConfiguration(chatId);
             //Cancel the announcement if:

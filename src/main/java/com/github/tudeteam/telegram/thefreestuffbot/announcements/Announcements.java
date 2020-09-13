@@ -20,18 +20,20 @@ public class Announcements {
     protected final ConfigurationDB db;
     protected final MongoCollection<Document> ongoingCollection;
     protected final MongoCollection<Document> processedCollection;
+    protected final MongoCollection<Document> gamesCollection;
     protected final Object lock = new Object();
     protected Boolean awake = false;
     protected ObjectId activeId = null;
     protected int activeWorkers;
 
-    public Announcements(int creatorId, ExecutorService executor, SilentExecutor silent, ConfigurationDB db, MongoCollection<Document> ongoingCollection, MongoCollection<Document> processedCollection) {
+    public Announcements(int creatorId, ExecutorService executor, SilentExecutor silent, ConfigurationDB db, MongoCollection<Document> ongoingCollection, MongoCollection<Document> processedCollection, MongoCollection<Document> gamesCollection) {
         this.creatorId = creatorId;
         this.executor = executor;
         this.silent = silent;
         this.db = db;
         this.ongoingCollection = ongoingCollection;
         this.processedCollection = processedCollection;
+        this.gamesCollection = gamesCollection;
     }
 
     protected void nextAnnouncement() {
@@ -55,7 +57,7 @@ public class Announcements {
     protected void activateWorkers(String announcementType, Document announcementData) {
         activeWorkers = maxActiveWorkers;
         for (int i = 0; i < maxActiveWorkers; i++) {
-            executor.submit(new AnnouncementWorker(silent, db, ongoingCollection, activeId, announcementType, announcementData) {
+            executor.submit(new AnnouncementWorker(silent, db, ongoingCollection, gamesCollection, activeId, announcementType, announcementData) {
                 @Override
                 protected void finishedQueue() {
                     synchronized (lock) {

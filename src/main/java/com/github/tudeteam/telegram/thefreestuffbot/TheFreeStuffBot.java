@@ -1,6 +1,7 @@
 package com.github.tudeteam.telegram.thefreestuffbot;
 
 import com.github.tudeteam.telegram.thefreestuffbot.announcements.Announcements;
+import com.github.tudeteam.telegram.thefreestuffbot.announcements.DatabaseWatcher;
 import com.github.tudeteam.telegram.thefreestuffbot.framework.commands.Command;
 import com.github.tudeteam.telegram.thefreestuffbot.framework.commands.CommandsHandler;
 import com.github.tudeteam.telegram.thefreestuffbot.framework.commands.Locality;
@@ -28,8 +29,11 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 import static com.mongodb.client.model.Filters.*;
+import static java.util.concurrent.TimeUnit.MINUTES;
 
 public class TheFreeStuffBot extends TelegramLongPollingBot {
 
@@ -39,6 +43,7 @@ public class TheFreeStuffBot extends TelegramLongPollingBot {
     protected static final int botCreatorID = Integer.parseInt(System.getenv("BOT_CREATORID"));
     protected static final String botDatabaseURI = System.getenv("BOT_DATABASE");
     /* End of configuration */
+    private static final Gson gson = new Gson();
     protected static final MongoClient mongoClient = MongoClients.create(botDatabaseURI);
     protected static final MongoDatabase mongoDatabase = mongoClient.getDatabase("freestuffbot");
     protected static final MongoCollection<Document> adminsCollection = mongoDatabase.getCollection("telegram-admins");
@@ -61,10 +66,12 @@ public class TheFreeStuffBot extends TelegramLongPollingBot {
     protected final ConfigurationDB configurationDB = new ConfigurationDB(configCollection);
     protected final MenuHandler menuHandler = new MenuHandler(silent, configurationDB, authorizer);
     protected final Announcements announcements = new Announcements(botCreatorID, this.exe, silent, configurationDB, ongoingCollection, processedCollection, gamesCollection);
-    Gson gson = new Gson();
+    protected final ScheduledExecutorService scheduledExecutor = Executors.newSingleThreadScheduledExecutor();
 
     public TheFreeStuffBot() {
         super(botOptions);
+        scheduledExecutor.scheduleAtFixedRate(new DatabaseWatcher(announcements, configCollection, gamesCollection, ongoingCollection),
+                0, 1, MINUTES);
         announcements.wakeUp();
 
         updatesPipe.registerHandler(chatsTracker);

@@ -6,9 +6,10 @@ import org.bson.Document;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.mongodb.client.model.Filters.*;
+import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Sorts.ascending;
-import static com.mongodb.client.model.Updates.set;
+import static com.mongodb.client.model.Updates.unset;
 
 /**
  * Watches the MongoDB database for new published games announcements.
@@ -33,7 +34,7 @@ public class DatabaseWatcher implements Runnable {
     public synchronized void run() {
         gamesCollection.find(and(
                 eq("status", "published"),
-                ne("telegram", true)
+                eq("telegram", true)
         )).sort(ascending("published")).forEach(gameDocument -> {
             Document announcement = new Document();
 
@@ -57,7 +58,7 @@ public class DatabaseWatcher implements Runnable {
                     .append("channels", 0));
 
             ongoingCollection.insertOne(announcement);
-            gamesCollection.updateOne(gameDocument, set("telegram", true));
+            gamesCollection.updateOne(gameDocument, unset("telegram"));
             announcements.wakeUp();
         });
     }

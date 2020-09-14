@@ -1,7 +1,5 @@
 package com.github.tudeteam.telegram.thefreestuffbot.structures;
 
-import java.util.HashMap;
-
 /**
  * This is the object that gets stored long term for the following uses:
  * - Tell the proxy where to redirect the links to (redundant as the proxy is not in use yet).
@@ -45,25 +43,26 @@ public class GameData {
     public GameInfo info;
 
     /**
-     * Nullable. Array that gradually fills up with all the shards that have picked up the announcement.
-     * Last shard that would make the list full will remove the object from the entry
+     * The outgoing progress of the announcement for different platforms.
      */
-    public int[] outgoing;
+    public Outgoing outgoing;
 
     public static class Analytics {
-        /**
-         * Number of servers it got announced in.
-         */
-        public int reach;
 
         /**
-         * Clicks in total.
+         * The analytics of the Telegram bot.
          */
-        public int clicks;
+        public TelegramAnalytics telegram;
+    }
+
+    /**
+     * Only Telegram is included here for simplicity reasons.
+     */
+    public static class Outgoing {
 
         /**
-         * Clicks per guild.
+         * Nullable. The outgoing data of the Telegram announcement.
          */
-        public HashMap<String, Integer> guilds;
+        public TelegramOutgoing telegram;
     }
 }

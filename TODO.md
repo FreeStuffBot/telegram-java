@@ -4,10 +4,10 @@
 ## Database
 
 - [ ] Update to the latest database changes.
-  - [ ] Update the defined structures.
+  - [x] Update the defined structures.
   - [ ] Fix the synchronization tasks.
-- [ ] Define the structure for ongoing Telegram announcements.
-- [ ] Update the ongoing announcements in the database every group of chats,
+- [x] Define the structure for outgoing Telegram announcements.
+- [ ] Update the outgoing announcements in the database every group of chats,
 not for each chat (that's too spammy and consumes the db bandwidth).
 - [ ] Make the watcher filter for `accepted` games instead of `published`.
 

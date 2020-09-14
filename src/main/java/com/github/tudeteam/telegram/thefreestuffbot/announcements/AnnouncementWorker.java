@@ -16,6 +16,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 
 import java.util.List;
 
+import static com.github.tudeteam.telegram.thefreestuffbot.structures.GameFlag.TRASH;
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Updates.*;
 
@@ -149,7 +150,7 @@ public abstract class AnnouncementWorker implements Runnable {
             //- The chat's has the announcements disabled.
             if (!configuration.enabled) return nullMessage;
             //- It's a trash game announcement and the chat has them filtered.
-            if (!configuration.trash && gameInfo.isTrash()) return nullMessage;
+            if (!configuration.trash && gameInfo.hasFlag(TRASH)) return nullMessage;
             //- The game's price is lower than the minimum price set for this channel.
             if (configuration.minPrice > gameInfo.price.inCurrency(configuration.currency)) return nullMessage;
 

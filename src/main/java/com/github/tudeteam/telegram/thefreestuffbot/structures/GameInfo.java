@@ -24,7 +24,7 @@ public class GameInfo extends ScrapeableGameInfo {
     /**
      * Flags.
      */
-    public GameFlag[] flags;
+    public int flags;
 
     /**
      * Type of announcement.
@@ -32,14 +32,12 @@ public class GameInfo extends ScrapeableGameInfo {
     public AnnouncementType type;
 
     /**
-     * Checks whether this game is marked as trash (low-quality) or not.
+     * Checks whether the game has the specified flag or not.
      *
-     * @return {@code true} if this game is marked as trash (low-quality), {@code false} otherwise.
+     * @param flag The flag to check.
+     * @return {@code true} if it's set, {@code false} otherwise.
      */
-    public boolean isTrash() {
-        for (GameFlag flag : flags)
-            if (flag == GameFlag.TRASH)
-                return true;
-        return false;
+    public boolean hasFlag(GameFlag flag) {
+        return flag.isSet(flags);
     }
 }

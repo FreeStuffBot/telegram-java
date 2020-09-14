@@ -4,69 +4,65 @@ import com.google.gson.annotations.SerializedName;
 
 public enum Store {
     @SerializedName("steam")
-    STEAM,
+    STEAM("Steam"),
     @SerializedName("epic")
-    EPIC,
+    EPIC("Epic Games Store"),
     @SerializedName("humble")
-    HUMBLE,
+    HUMBLE("Humble Bundle"),
     @SerializedName("gog")
-    GOG,
+    GOG("GOG.com"),
     @SerializedName("origin")
     ORIGIN,
     @SerializedName("uplay")
-    UPLAY,
+    UPLAY("Uplay"),
     @SerializedName("twitch")
-    TWITCH,
+    TWITCH("Twitch"),
     @SerializedName("itch")
-    ITCH,
+    ITCH("itch.io"),
     @SerializedName("discord")
-    DISCORD,
+    DISCORD("Discord"),
     @SerializedName("apple")
-    APPLE,
+    APPLE("Apple App Store"),
     @SerializedName("google")
-    GOOGLE,
+    GOOGLE("Google Play"),
     @SerializedName("switch")
-    SWITCH,
+    SWITCH("Nintendo Switch Store"),
     @SerializedName("ps")
-    PS,
+    PS("Play Station"),
     @SerializedName("xbox")
-    XBOX,
+    XBOX("Xbox"),
     @SerializedName("other")
-    OTHER;
+    OTHER("Other");
 
+    /**
+     * The display name of the store.
+     */
+    private final String displayName;
+
+    Store() {
+        displayName = name();
+    }
+
+    Store(String displayName) {
+        this.displayName = displayName;
+    }
+
+    /**
+     * Returns display name of the store.
+     *
+     * @return The display name of the store.
+     */
+    public String displayName() {
+        return displayName;
+    }
+
+    /**
+     * Formats the store name for usage in messages.
+     *
+     * @return The store name formatted for usage in messages.
+     */
     @Override
     public String toString() {
-        switch (this) {
-            case STEAM:
-                return "Steam";
-            case EPIC:
-                return "Epic Games Store";
-            case HUMBLE:
-                return "Humble Bundle";
-            case GOG:
-                return "GOG.com";
-            case UPLAY:
-                return "Uplay";
-            case TWITCH:
-                return "Twitch";
-            case ITCH:
-                return "itch.io";
-            case DISCORD:
-                return "Discord";
-            case APPLE:
-                return "Apple App Store";
-            case GOOGLE:
-                return "Google Play";
-            case SWITCH:
-                return "Nintendo Switch Store";
-            case PS:
-                return "Play Station";
-            case XBOX:
-                return "Xbox";
-            case OTHER:
-                return "Other";
-            default:
-                return name();
-        }
+        return displayName;
     }
 }

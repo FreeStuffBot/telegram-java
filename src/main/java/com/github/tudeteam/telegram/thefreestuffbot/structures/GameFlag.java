@@ -29,12 +29,12 @@ public enum GameFlag {
     }
 
     /**
-     * Checks if the flag is set in the provided bits bundle.
+     * Checks if the flag is set in the provided bitfield.
      *
-     * @param bits The bits bundle.
+     * @param bitfield The bitfield.
      * @return {@code true} if set, {@code false} otherwise.
      */
-    public boolean isSet(int bits) {
-        return (bits & bitmask) != 0;
+    public boolean isSet(int bitfield) {
+        return (bitfield & bitmask) != 0;
     }
 }

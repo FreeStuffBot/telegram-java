@@ -9,6 +9,7 @@
 - [ ] Define the structure for ongoing Telegram announcements.
 - [ ] Update the ongoing announcements in the database every group of chats,
 not for each chat (that's too spammy and consumes the db bandwidth).
+- [ ] Make the watcher filter for `accepted` games instead of `published`.
 
 ## Settings Menu
 

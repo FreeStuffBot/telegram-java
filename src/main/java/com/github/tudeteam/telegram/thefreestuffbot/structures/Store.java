@@ -34,6 +34,8 @@ public enum Store {
     @SerializedName("other")
     OTHER("Other");
 
+    /* Enum code */
+
     /**
      * The display name of the store.
      */

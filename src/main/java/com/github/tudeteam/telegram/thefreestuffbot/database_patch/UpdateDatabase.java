@@ -32,5 +32,6 @@ public class UpdateDatabase {
 
         ConvertUntilIntoString.main(new String[0]);
         ConvertUntilIntoTimestamp.main(new String[0]);
+        ConvertFlagsIntoBitfield.main(new String[0]);
     }
 }

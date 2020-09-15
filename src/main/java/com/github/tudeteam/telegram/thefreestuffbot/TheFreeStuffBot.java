@@ -264,4 +264,20 @@ public class TheFreeStuffBot extends TelegramLongPollingBot {
     public String getBotToken() {
         return botToken;
     }
+
+    /**
+     * Shutdown the bot.
+     */
+    @Override
+    public void onClosing() {
+        //Executors
+        scheduledExecutor.shutdown();
+        //Telegram
+        super.onClosing();
+        //MongoDB
+        mongoClient.close();
+        //Redis
+        redisConnection.close();
+        redisClient.shutdown();
+    }
 }

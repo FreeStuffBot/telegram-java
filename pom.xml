@@ -32,6 +32,12 @@
       <version>1.7.30</version>
       <scope>runtime</scope>
     </dependency>
+    <!-- Redis client - Lettuce -->
+    <dependency>
+      <groupId>io.lettuce</groupId>
+      <artifactId>lettuce-core</artifactId>
+      <version>5.3.3.RELEASE</version>
+    </dependency>
     <!-- MongoDB driver -->
     <dependency>
       <groupId>org.mongodb</groupId>

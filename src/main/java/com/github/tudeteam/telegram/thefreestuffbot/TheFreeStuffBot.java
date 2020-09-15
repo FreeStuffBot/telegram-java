@@ -19,6 +19,9 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import io.lettuce.core.RedisClient;
+import io.lettuce.core.api.StatefulRedisConnection;
+import io.lettuce.core.api.sync.RedisCommands;
 import org.bson.Document;
 import org.telegram.telegrambots.bots.DefaultBotOptions;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
@@ -44,6 +47,13 @@ public class TheFreeStuffBot extends TelegramLongPollingBot {
     protected static final String botDatabaseURI = System.getenv("BOT_DATABASE");
     /* End of configuration */
     private static final Gson gson = new Gson();
+
+    /* Redis */
+    protected static final RedisClient redisClient = RedisClient.create("redis://localhost:6379");
+    protected static final StatefulRedisConnection<String, String> redisConnection = redisClient.connect();
+    protected static final RedisCommands<String, String> redisCommands = redisConnection.sync();
+
+    /* MongoDB */
     protected static final MongoClient mongoClient = MongoClients.create(botDatabaseURI);
     protected static final MongoDatabase mongoDatabase = mongoClient.getDatabase("freestuffbot");
     protected static final MongoCollection<Document> adminsCollection = mongoDatabase.getCollection("telegram-admins");

@@ -80,7 +80,7 @@ public class TheFreeStuffBot extends TelegramLongPollingBot {
 
     public TheFreeStuffBot() {
         super(botOptions);
-        scheduledExecutor.scheduleAtFixedRate(new DatabaseWatcher(announcements, configCollection, gamesCollection, ongoingCollection),
+        scheduledExecutor.scheduleWithFixedDelay(new DatabaseWatcher(announcements, configCollection, gamesCollection, ongoingCollection),
                 0, 1, MINUTES);
         announcements.wakeUp();
 

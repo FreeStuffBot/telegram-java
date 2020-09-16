@@ -48,6 +48,6 @@ public class TelegramAnalytics {
         /**
          * The total number of users subscribed to channels which the game was announced to.
          */
-        public int channelsSubscribers;
+        public int channelsUsers;
     }
 }

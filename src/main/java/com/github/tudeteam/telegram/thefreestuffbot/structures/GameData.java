@@ -61,8 +61,8 @@ public class GameData {
     public static class Outgoing {
 
         /**
-         * Nullable. The outgoing data of the Telegram announcement.
+         * {@code true} when the announcement should be published on Telegram.
          */
-        public TelegramOutgoing telegram;
+        public boolean telegram;
     }
 }

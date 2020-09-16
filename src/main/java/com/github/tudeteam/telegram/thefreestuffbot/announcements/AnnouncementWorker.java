@@ -1,14 +1,10 @@
 package com.github.tudeteam.telegram.thefreestuffbot.announcements;
 
 import com.github.tudeteam.telegram.thefreestuffbot.ConfigurationDB;
-import com.github.tudeteam.telegram.thefreestuffbot.framework.utilities.ChatUtilities;
 import com.github.tudeteam.telegram.thefreestuffbot.framework.utilities.SilentExecutor;
 import com.github.tudeteam.telegram.thefreestuffbot.structures.ChatConfiguration;
 import com.github.tudeteam.telegram.thefreestuffbot.structures.GameInfo;
-import com.google.gson.Gson;
-import com.mongodb.client.MongoCollection;
-import org.bson.Document;
-import org.bson.types.ObjectId;
+import io.lettuce.core.api.sync.RedisCommands;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
@@ -17,197 +13,127 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 import java.util.List;
 
 import static com.github.tudeteam.telegram.thefreestuffbot.structures.GameFlag.TRASH;
-import static com.mongodb.client.model.Filters.eq;
-import static com.mongodb.client.model.Updates.*;
 
-public abstract class AnnouncementWorker implements Runnable {
+public class AnnouncementWorker implements Runnable {
 
-    /**
-     * The maximum number of announcements processed in each second.
-     */
-    public static final int rateLimit = 4;
-    private static final Gson gson = new Gson();
-    private static final Message nullMessage = new Message();
-    /**
-     * The silent executor used for executing the Telegram requests.
-     */
+    /* Instance Fields */
+
+    protected final long _id;
+    protected final GameInfo gameInfo;
     protected final SilentExecutor silent;
-
-    /**
-     * The chats configuration database.
-     */
     protected final ConfigurationDB db;
+    protected final RateLimitBucket rateLimit;
+    protected final RedisCommands<String, String> redisCommands;
 
-    /**
-     * The MongoDB collection containing the ongoing (under processing) announcements.
-     */
-    protected final MongoCollection<Document> ongoing;
+    //Redis fields keys.
 
-    /**
-     * The MongoDB collection containing the games information.
-     */
-    protected final MongoCollection<Document> games;
+    protected final String keyPrefix;
+    protected final String keyPending;
+    protected final String keyFailed;
+    protected final String keyAttempts;
 
-    /**
-     * The announcement to process.
-     */
-    protected final ObjectId announcementId;
+    /* Constructor */
 
-    /**
-     * The type of the announcement.
-     */
-    protected final String announcementType;
-
-    /**
-     * The data of the announcement.
-     */
-    protected final Document announcementData;
-
-    /**
-     * The timestamp we're measuring the rate second to (in milliseconds).
-     */
-    private long rateTimestamp;
-
-    /**
-     * The number of announcements processed in this second.
-     */
-    private int currentRate;
-
-    public AnnouncementWorker(SilentExecutor silent, ConfigurationDB db, MongoCollection<Document> ongoing, MongoCollection<Document> games, ObjectId announcementId, String announcementType, Document announcementData) {
+    public AnnouncementWorker(long _id, GameInfo gameInfo, SilentExecutor silent, ConfigurationDB db, RateLimitBucket rateLimit, RedisCommands<String, String> redisCommands) {
+        this._id = _id;
+        this.gameInfo = gameInfo;
         this.silent = silent;
         this.db = db;
-        this.ongoing = ongoing;
-        this.games = games;
-        this.announcementId = announcementId;
-        this.announcementType = announcementType;
-        this.announcementData = announcementData;
+        this.rateLimit = rateLimit;
+        this.redisCommands = redisCommands;
+
+        //Redis fields keys.
+        keyPrefix = "TheFreeStuffBot:ongoing:" + _id + ":";
+        keyPending = keyPrefix + "pending";
+        keyFailed = keyPrefix + "failed";
+        keyAttempts = keyPrefix + "attempts";
     }
 
-    /**
-     * When the worker asks for the next chat to announce in, and finds it has reached the end.
-     */
-    protected abstract void finishedQueue();
+    /* Instance Methods */
 
-    /**
-     * Pops the next chatId from the database and returns it, returns null when no chatId is available (reached the end).
-     *
-     * @return The next chatId, or {@code null} when the end is reached.
-     */
-    protected Long popChatId() {
-        Document document = ongoing.findOneAndUpdate(eq("_id", announcementId), popFirst("chats.pending"));
-        if (document == null) return null;
-        List<Long> chats = document.get("chats", Document.class).getList("pending", Long.class);
-        if (chats.isEmpty()) return null;
-        return chats.get(0);
+    protected void requeueFailed() {
+        synchronized (rateLimit) {
+            if (redisCommands.get(keyAttempts).equals("0")) return;
+            if (redisCommands.scard(keyFailed) == 0) return;
+            redisCommands.sunionstore(keyPending, keyPending, keyFailed);
+            redisCommands.decr(keyAttempts);
+        }
     }
 
-    /**
-     * Attempt to increase the current rate counter, if the limit is reached, it'll sleep until it resets.
-     *
-     * @throws InterruptedException If interrupted while waiting for the rate limit to reset.
-     */
-    protected void consumeRateLimit() throws InterruptedException {
-        long timestamp = System.currentTimeMillis();
-        if (timestamp - rateTimestamp >= 1000L) {
-            rateTimestamp = timestamp;
-            currentRate = 0;
-        }
-
-        if (currentRate >= rateLimit) {
-            Thread.sleep(1010L - (timestamp - rateTimestamp)); //The extra 10 ms is because Thread.sleep is not perfectly accurate.
-            consumeRateLimit();
-            return;
-        }
-
-        currentRate++;
+    protected boolean shouldSkipAnnouncement(ChatConfiguration config) {
+        //Skip the announcement if:
+        //- The chat's configuration was deleted.
+        if (config == null) return true;
+        //- The chat's has the announcements disabled.
+        if (!config.enabled) return true;
+        //- It's a trash game announcement and the chat has them filtered.
+        if (!config.trash && gameInfo.hasFlag(TRASH)) return true;
+        //- The game's price is lower than the minimum price set for this channel.
+        return config.minPrice > gameInfo.price.inCurrency(config.currency);
     }
 
-    /**
-     * Send the announcement for the specific chat.
-     *
-     * @param chatId The chat to send the announcement to.
-     * @return The sent message, or null on failure.
-     */
-    protected Message sendAnnouncement(long chatId) {
-        if (announcementType.equals("TEST")) {
-            String content = announcementData.getString("content");
-            return silent.compose().text(String.valueOf(content))
-                    .chatId(chatId).send();
-        } else if (announcementType.equals("GAME")) {
-            int gameId = announcementData.getInteger("_id");
-            Document gameDocument = games.find(eq("_id", gameId)).first();
-            if (gameDocument == null) {
-                new Exception("Couldn't fetch game's information for the announcement!").printStackTrace();
-                return null;
-            }
+    protected Message sendAnnouncement(long chatId, ChatConfiguration config) {
+        InlineKeyboardMarkup inlineMarkup = new InlineKeyboardMarkup();
+        inlineMarkup.getKeyboard().add(List.of(new InlineKeyboardButton()
+                .setText("Get")
+                .setUrl(gameInfo.org_url.toString())
+        ));
 
-            GameInfo gameInfo = gson.fromJson(gameDocument.get("info", Document.class).toJson(), GameInfo.class);
-
-            ChatConfiguration configuration = db.getConfiguration(chatId);
-            //Cancel the announcement if:
-            //- The chat's configuration was deleted.
-            if (configuration == null) return nullMessage;
-            //- The chat's has the announcements disabled.
-            if (!configuration.enabled) return nullMessage;
-            //- It's a trash game announcement and the chat has them filtered.
-            if (!configuration.trash && gameInfo.hasFlag(TRASH)) return nullMessage;
-            //- The game's price is lower than the minimum price set for this channel.
-            if (configuration.minPrice > gameInfo.price.inCurrency(configuration.currency)) return nullMessage;
-
-            InlineKeyboardMarkup inlineMarkup = new InlineKeyboardMarkup();
-            inlineMarkup.getKeyboard().add(List.of(new InlineKeyboardButton()
-                    .setText("Get")
-                    .setUrl(gameInfo.org_url.toString())
-            ));
-
-            return silent.execute(new SendPhoto()
-                    .setChatId(chatId)
-                    .setPhoto(gameInfo.thumbnail.toString())
-                    .setCaption(String.format("<b>Free Game!</b>\n<b>%s</b>\n<s>%s</s> <b>Free</b> until %s • %s\nvia freestuffbot.xyz",
-                            gameInfo.title,
-                            gameInfo.org_price.toString(configuration.currency),
-                            gameInfo.formatUntil(configuration.untilFormat),
-                            gameInfo.store.toString()
-                    ))
-                    .setParseMode("HTML")
-                    .setReplyMarkup(inlineMarkup)
-            );
-        } else {
-            System.err.println("Unsupported announcement type '" + announcementType + "' for chat: " + chatId);
-            return null;
-        }
+        return silent.execute(new SendPhoto()
+                .setChatId(chatId)
+                .setPhoto(gameInfo.thumbnail.toString())
+                .setCaption(String.format("<b>Free Game!</b>\n<b>%s</b>\n<s>%s</s> <b>Free</b> until %s • %s\nvia freestuffbot.xyz",
+                        gameInfo.title,
+                        gameInfo.org_price.toString(config.currency),
+                        gameInfo.formatUntil(config.untilFormat),
+                        gameInfo.store.toString()
+                ))
+                .setParseMode("HTML")
+                .setReplyMarkup(inlineMarkup)
+        );
     }
 
     @Override
     public void run() {
         while (true) {
+            String chatIdString = redisCommands.spop(keyPending);
+            if (chatIdString == null) {
+                //Reached the end, requeue failed chats if that's possible.
+                requeueFailed();
+                //Check if some chats got requeued.
+                if (redisCommands.scard(keyPending) != 0)
+                    continue; //New chats, continue to the next iteration.
+                else
+                    break; //No more chats, terminate the worker.
+            }
+
+            //The chat to announce to.
+            long chatId = Long.parseLong(chatIdString);
+
+            //The configuration of the chat.
+            ChatConfiguration config = db.getConfiguration(chatId);
+
+            //Check if the announcement should be skipped for this chat.
+            if (shouldSkipAnnouncement(config)) continue;
+
+            //Consume a call from the rateLimit bucket.
             try {
-                consumeRateLimit();
+                rateLimit.consume();
             } catch (InterruptedException e) {
-                return; //Terminated while waiting for rate limit to reset.
+                redisCommands.sadd(keyPending, chatIdString); //Requeue the chat id.
+                return; //The worker has been terminated by interruption.
             }
 
-            Long chatId = popChatId();
-            if (chatId == null) {
-                finishedQueue();
-                return;
+            //Send the announcement.
+            Message message = sendAnnouncement(chatId, config);
+
+            //Check if the message failed
+            if (message == null) //It failed.
+                redisCommands.sadd(keyFailed, chatIdString); //Add the chat id to the failed set.
+            else { //It was sent.
+                //TODO: Analytics.
             }
 
-            Message message = sendAnnouncement(chatId);
-
-            if (message == null)
-                ongoing.updateOne(eq("_id", announcementId), push("chats.failed", chatId));
-            else if (message == nullMessage) {
-                ongoing.updateOne(eq("_id", announcementId),
-                        push("chats.processed", chatId)
-                );
-            } else {
-                String chatCategory = ChatUtilities.getChatType(message.getChat()).name().toLowerCase() + "s";
-                ongoing.updateOne(eq("_id", announcementId), combine(
-                        inc("reached." + chatCategory, 1),
-                        push("chats.processed", chatId)
-                ));
-            }
         }
     }
 }

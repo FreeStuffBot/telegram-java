@@ -3,6 +3,7 @@ package com.github.tudeteam.telegram.thefreestuffbot.announcements;
 import com.github.tudeteam.telegram.thefreestuffbot.ConfigurationDB;
 import com.github.tudeteam.telegram.thefreestuffbot.framework.utilities.SilentExecutor;
 import com.github.tudeteam.telegram.thefreestuffbot.structures.GameInfo;
+import com.github.tudeteam.telegram.thefreestuffbot.structures.TelegramAnalytics;
 import com.google.gson.Gson;
 import com.mongodb.client.MongoCollection;
 import io.lettuce.core.api.sync.RedisCommands;
@@ -17,7 +18,7 @@ import java.util.concurrent.Future;
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Sorts.ascending;
-import static com.mongodb.client.model.Updates.unset;
+import static com.mongodb.client.model.Updates.*;
 
 /**
  * Checks the database for new game announcements, and processes them, then terminates.
@@ -33,6 +34,13 @@ import static com.mongodb.client.model.Updates.unset;
  *     <li><b>pending</b> A set of chat ids to announce to.</li>
  *     <li><b>failed:</b> A set of chat ids which failed, to be requeued (to pending) once the current pending is finished.</li>\
  *     <li><b>attempts:</b> The number of retry attempts remaining.</li>
+ *
+ *     <li><b>users:</b>A counter of announcements sent to users.</li>
+ *     <li><b>groups:</b>A counter of announcements sent to groups.</li>
+ *     <li><b>supergroups:</b>A counter of announcements sent to supergroups.</li>
+ *     <li><b>channels:</b>A counter of announcements sent to channels.</li>
+ *     <li><b>groupsUsers:</b>A counter of the number of users in groups which the announcement was sent to.</li>
+ *     <li><b>channelsUsers:</b>A counter of the number of users in channels which the announcement was sent to.</li>
  * </ul>
  */
 public class CheckDatabase implements Runnable {
@@ -85,6 +93,7 @@ public class CheckDatabase implements Runnable {
         String keyPending = keyPrefix + "pending";
         String keyFailed = keyPrefix + "failed";
         String keyAttempts = keyPrefix + "attempts";
+        String[] analyticsFields = {"users", "groups", "supergroups", "channels", "groupsUsers", "channelsUsers"};
 
         //Check if the announcement was not already initialized.
         if (redisCommands.exists(keyActive) == 0) {
@@ -96,6 +105,8 @@ public class CheckDatabase implements Runnable {
             redisCommands.del(keyFailed);
             //Set the attempts counter.
             redisCommands.set(keyAttempts, String.valueOf(retryAttempts));
+            //Clear the analytics counters.
+            for (String field : analyticsFields) redisCommands.set(keyPrefix + field, "0");
             //Set the announcement as initialized.
             redisCommands.set(keyActive, "true");
         }
@@ -103,15 +114,13 @@ public class CheckDatabase implements Runnable {
 
     protected void deleteAnnouncement(Document gameDocument) {
         String keyPrefix = "TheFreeStuffBot:ongoing:" + gameDocument.getInteger("_id") + ":";
-        String keyActive = keyPrefix + "active";
-        String keyPending = keyPrefix + "pending";
-        String keyFailed = keyPrefix + "failed";
-        String keyAttempts = keyPrefix + "attempts";
+        String[] fields = {"active", "pending", "failed", "attempts",
+                "users", "groups", "supergroups", "channels", "groupsUsers", "channelsUsers"};
 
+        for (int i = 0; i < fields.length; i++) fields[i] = keyPrefix + fields[i];
 
-        System.out.println("Failed chats count: " + redisCommands.scard(keyFailed));
-
-        redisCommands.del(keyActive, keyPending, keyFailed, keyAttempts);
+        System.out.println("Failed chats count: " + redisCommands.scard(fields[2]));
+        redisCommands.del(fields);
     }
 
     @Override
@@ -124,6 +133,9 @@ public class CheckDatabase implements Runnable {
             ))
                     .sort(ascending("published")) //Sort the results by the published time, for proper order.
                     .forEach(gameDocument -> { //Now for each game that meets the criteria, announce it on Telegram.
+                        //The redis keys prefix for this game announcement.
+                        String keyPrefix = "TheFreeStuffBot:ongoing:" + gameDocument.getInteger("_id") + ":";
+
                         //Deserialize the game's information.
                         GameInfo gameInfo = gson.fromJson(gameDocument.get("info", Document.class).toJson(), GameInfo.class);
 
@@ -150,11 +162,24 @@ public class CheckDatabase implements Runnable {
                         }
 
                         //Check if the pending set is not empty (the announcement was not completed, and the workers died for some reason).
-                        if (redisCommands.scard("TheFreeStuffBot:ongoing:" + gameDocument.getInteger("_id") + ":pending") != 0)
+                        if (redisCommands.scard(keyPrefix + "pending") != 0)
                             return; //Prevent the game from being marked as announced. //TODO: Report the accident.
 
-                        //Mark the game as announced for Telegram.
-                        gamesCollection.updateOne(gameDocument, unset("outgoing.telegram"));
+                        //Get the analytics data of the announcement.
+                        TelegramAnalytics analytics = new TelegramAnalytics();
+
+                        analytics.reach.users = Integer.parseInt(redisCommands.get(keyPrefix + "users"));
+                        analytics.reach.groups = Integer.parseInt(redisCommands.get(keyPrefix + "groups"));
+                        analytics.reach.supergroups = Integer.parseInt(redisCommands.get(keyPrefix + "supergroups"));
+                        analytics.reach.channels = Integer.parseInt(redisCommands.get(keyPrefix + "channels"));
+                        analytics.reach.groupsUsers = Integer.parseInt(redisCommands.get(keyPrefix + "groupsUsers"));
+                        analytics.reach.channelsUsers = Integer.parseInt(redisCommands.get(keyPrefix + "channelsUsers"));
+
+                        //Mark the game as announced for Telegram, and set the analytics data.
+                        gamesCollection.updateOne(gameDocument, combine(
+                                unset("outgoing.telegram"),
+                                set("analytics.telegram", Document.parse(gson.toJson(analytics)))
+                        ));
 
                         //Delete the announcement data from redis.
                         deleteAnnouncement(gameDocument);

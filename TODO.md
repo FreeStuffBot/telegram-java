@@ -10,8 +10,8 @@
 - [x] Update the announcements' system to use redis instead of
 MongoDB for storing the progress.
 - [ ] Collect analytics for the Telegram announcements.
-  - [ ] Define the redis structure for the analytics.
-  - [ ] Put the result analytics into MongoDB once published.
+  - [x] Define the redis structure for the analytics.
+  - [x] Put the result analytics into MongoDB once published.
 - [ ] Make the watcher filter for `accepted` games instead of `published`.
 
 ## Settings Menu

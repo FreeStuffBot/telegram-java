@@ -1,10 +1,13 @@
 package com.github.tudeteam.telegram.thefreestuffbot.announcements;
 
 import com.github.tudeteam.telegram.thefreestuffbot.ConfigurationDB;
+import com.github.tudeteam.telegram.thefreestuffbot.framework.utilities.ChatUtilities;
+import com.github.tudeteam.telegram.thefreestuffbot.framework.utilities.ChatUtilities.ChatType;
 import com.github.tudeteam.telegram.thefreestuffbot.framework.utilities.SilentExecutor;
 import com.github.tudeteam.telegram.thefreestuffbot.structures.ChatConfiguration;
 import com.github.tudeteam.telegram.thefreestuffbot.structures.GameInfo;
 import io.lettuce.core.api.sync.RedisCommands;
+import org.telegram.telegrambots.meta.api.methods.groupadministration.GetChatMembersCount;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
@@ -12,6 +15,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 
 import java.util.List;
 
+import static com.github.tudeteam.telegram.thefreestuffbot.framework.utilities.ChatUtilities.ChatType.*;
 import static com.github.tudeteam.telegram.thefreestuffbot.structures.GameFlag.TRASH;
 
 public class AnnouncementWorker implements Runnable {
@@ -131,7 +135,20 @@ public class AnnouncementWorker implements Runnable {
             if (message == null) //It failed.
                 redisCommands.sadd(keyFailed, chatIdString); //Add the chat id to the failed set.
             else { //It was sent.
-                //TODO: Analytics.
+                ChatType chatType = ChatUtilities.getChatType(message.getChat());
+                if (chatType == UNKNOWN) continue;
+
+                //Increase the chats counter of that type.
+                redisCommands.incr(keyPrefix + chatType.name().toLowerCase() + "s");
+
+                //Increase the members counters for groups and channels.
+                if (chatType == GROUP || chatType == SUPERGROUP) {
+                    Integer count = silent.execute(new GetChatMembersCount().setChatId(chatId));
+                    if (count != null) redisCommands.incrby(keyPrefix + "groupsUsers", count);
+                } else if (chatType == CHANNEL) {
+                    Integer count = silent.execute(new GetChatMembersCount().setChatId(chatId));
+                    if (count != null) redisCommands.incrby(keyPrefix + "channelsUsers", count);
+                }
             }
 
         }

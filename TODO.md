@@ -9,7 +9,7 @@
 - [x] Define the structure for outgoing Telegram announcements.
 - [x] Update the announcements' system to use redis instead of
 MongoDB for storing the progress.
-- [ ] Collect analytics for the Telegram announcements.
+- [x] Collect analytics for the Telegram announcements.
   - [x] Define the redis structure for the analytics.
   - [x] Put the result analytics into MongoDB once published.
 - [ ] Make the watcher filter for `accepted` games instead of `published`.

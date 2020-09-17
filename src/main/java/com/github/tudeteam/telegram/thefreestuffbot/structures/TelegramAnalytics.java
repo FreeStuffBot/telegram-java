@@ -8,7 +8,7 @@ public class TelegramAnalytics {
     /**
      * The numbers of chats the game was announced to.
      */
-    public Reach reach;
+    public Reach reach = new Reach();
 
     /**
      * TODO: The total clicks count on the announcements (not-implemented).

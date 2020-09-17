@@ -7,8 +7,11 @@
   - [x] Update the defined structures.
   - [ ] Fix the synchronization tasks.
 - [x] Define the structure for outgoing Telegram announcements.
-- [ ] Update the outgoing announcements in the database every group of chats,
-not for each chat (that's too spammy and consumes the db bandwidth).
+- [x] Update the announcements' system to use redis instead of
+MongoDB for storing the progress.
+- [ ] Collect analytics for the Telegram announcements.
+  - [ ] Define the redis structure for the analytics.
+  - [ ] Put the result analytics into MongoDB once published.
 - [ ] Make the watcher filter for `accepted` games instead of `published`.
 
 ## Settings Menu

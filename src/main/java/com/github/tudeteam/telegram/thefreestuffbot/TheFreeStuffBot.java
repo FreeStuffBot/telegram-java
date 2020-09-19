@@ -5,12 +5,14 @@ import com.github.tudeteam.telegram.thefreestuffbot.framework.commands.Command;
 import com.github.tudeteam.telegram.thefreestuffbot.framework.commands.CommandsHandler;
 import com.github.tudeteam.telegram.thefreestuffbot.framework.commands.Locality;
 import com.github.tudeteam.telegram.thefreestuffbot.framework.commands.Privacy;
+import com.github.tudeteam.telegram.thefreestuffbot.framework.interactives.InteractiveHandler;
 import com.github.tudeteam.telegram.thefreestuffbot.framework.mongodb.ChatsTracker;
 import com.github.tudeteam.telegram.thefreestuffbot.framework.mongodb.commands.DemoteCommand;
 import com.github.tudeteam.telegram.thefreestuffbot.framework.mongodb.commands.PromoteCommand;
 import com.github.tudeteam.telegram.thefreestuffbot.framework.mongodb.commands.authorizers.AuthorizeWithMongoDB;
 import com.github.tudeteam.telegram.thefreestuffbot.framework.pipes.ConsumeOncePipe;
 import com.github.tudeteam.telegram.thefreestuffbot.framework.pipes.Pipe;
+import com.github.tudeteam.telegram.thefreestuffbot.framework.redis.RedisInteractiveHandler;
 import com.github.tudeteam.telegram.thefreestuffbot.framework.utilities.SilentExecutor;
 import com.github.tudeteam.telegram.thefreestuffbot.structures.GameData;
 import com.google.gson.Gson;
@@ -45,14 +47,10 @@ public class TheFreeStuffBot extends TelegramLongPollingBot {
     protected static final String botUsername = System.getenv("BOT_USERNAME");
     protected static final int botCreatorID = Integer.parseInt(System.getenv("BOT_CREATORID"));
     protected static final String botDatabaseURI = System.getenv("BOT_DATABASE");
-    /* End of configuration */
-    private static final Gson gson = new Gson();
-
     /* Redis */
     protected static final RedisClient redisClient = RedisClient.create("redis://localhost:6379");
     protected static final StatefulRedisConnection<String, String> redisConnection = redisClient.connect();
     protected static final RedisCommands<String, String> redisCommands = redisConnection.sync();
-
     /* MongoDB */
     protected static final MongoClient mongoClient = MongoClients.create(botDatabaseURI);
     protected static final MongoDatabase mongoDatabase = mongoClient.getDatabase("freestuffbot");
@@ -60,6 +58,8 @@ public class TheFreeStuffBot extends TelegramLongPollingBot {
     protected static final MongoCollection<Document> chatsCollection = mongoDatabase.getCollection("telegram-chats");
     protected static final MongoCollection<Document> configCollection = mongoDatabase.getCollection("telegram-config");
     protected static final MongoCollection<Document> gamesCollection = mongoDatabase.getCollection("games");
+    /* End of configuration */
+    private static final Gson gson = new Gson();
     private static final DefaultBotOptions botOptions = new DefaultBotOptions();
 
     static {
@@ -70,6 +70,7 @@ public class TheFreeStuffBot extends TelegramLongPollingBot {
     protected final SilentExecutor silent = new SilentExecutor(this);
     protected final AuthorizeWithMongoDB authorizer = new AuthorizeWithMongoDB(silent, botCreatorID, adminsCollection);
     protected final CommandsHandler commandsHandler = new CommandsHandler(botUsername, silent, authorizer);
+    protected final InteractiveHandler interactiveHandler = new RedisInteractiveHandler(this.getBotUsername(), redisCommands);
     protected final ChatsTracker chatsTracker = new ChatsTracker(botUsername, chatsCollection);
     protected final ConfigurationDB configurationDB = new ConfigurationDB(configCollection);
     protected final MenuHandler menuHandler = new MenuHandler(silent, configurationDB, authorizer);
@@ -82,6 +83,7 @@ public class TheFreeStuffBot extends TelegramLongPollingBot {
         //announcements.wakeUp();
 
         updatesPipe.registerHandler(chatsTracker);
+        updatesPipe.registerHandler(interactiveHandler);
         updatesPipe.registerHandler(commandsHandler);
         updatesPipe.registerHandler(menuHandler);
 

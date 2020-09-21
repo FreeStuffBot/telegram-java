@@ -1,7 +1,7 @@
 package com.github.tudeteam.telegram.thefreestuffbot.announcements;
 
+import com.github.rami_sabbagh.telegram.alice_framework.utilities.SilentExecutor;
 import com.github.tudeteam.telegram.thefreestuffbot.ConfigurationDB;
-import com.github.tudeteam.telegram.thefreestuffbot.framework.utilities.SilentExecutor;
 import com.github.tudeteam.telegram.thefreestuffbot.structures.GameInfo;
 import com.github.tudeteam.telegram.thefreestuffbot.structures.TelegramAnalytics;
 import com.google.gson.Gson;

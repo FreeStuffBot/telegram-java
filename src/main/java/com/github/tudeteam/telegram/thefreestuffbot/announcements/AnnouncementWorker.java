@@ -1,9 +1,9 @@
 package com.github.tudeteam.telegram.thefreestuffbot.announcements;
 
+import com.github.rami_sabbagh.telegram.alice_framework.utilities.ChatUtilities;
+import com.github.rami_sabbagh.telegram.alice_framework.utilities.ChatUtilities.ChatType;
+import com.github.rami_sabbagh.telegram.alice_framework.utilities.SilentExecutor;
 import com.github.tudeteam.telegram.thefreestuffbot.ConfigurationDB;
-import com.github.tudeteam.telegram.thefreestuffbot.framework.utilities.ChatUtilities;
-import com.github.tudeteam.telegram.thefreestuffbot.framework.utilities.ChatUtilities.ChatType;
-import com.github.tudeteam.telegram.thefreestuffbot.framework.utilities.SilentExecutor;
 import com.github.tudeteam.telegram.thefreestuffbot.structures.ChatConfiguration;
 import com.github.tudeteam.telegram.thefreestuffbot.structures.GameInfo;
 import io.lettuce.core.api.sync.RedisCommands;
@@ -15,7 +15,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 
 import java.util.List;
 
-import static com.github.tudeteam.telegram.thefreestuffbot.framework.utilities.ChatUtilities.ChatType.*;
+import static com.github.rami_sabbagh.telegram.alice_framework.utilities.ChatUtilities.ChatType.*;
 import static com.github.tudeteam.telegram.thefreestuffbot.structures.GameFlag.TRASH;
 
 public class AnnouncementWorker implements Runnable {

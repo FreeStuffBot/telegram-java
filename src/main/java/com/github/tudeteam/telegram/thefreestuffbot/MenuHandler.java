@@ -1,8 +1,8 @@
 package com.github.tudeteam.telegram.thefreestuffbot;
 
-import com.github.tudeteam.telegram.thefreestuffbot.framework.mongodb.commands.authorizers.AuthorizeWithMongoDB;
-import com.github.tudeteam.telegram.thefreestuffbot.framework.pipes.Handler;
-import com.github.tudeteam.telegram.thefreestuffbot.framework.utilities.SilentExecutor;
+import com.github.rami_sabbagh.telegram.alice_framework.mongodb.commands.authorizers.AuthorizeWithMongoDB;
+import com.github.rami_sabbagh.telegram.alice_framework.pipes.Handler;
+import com.github.rami_sabbagh.telegram.alice_framework.utilities.SilentExecutor;
 import com.github.tudeteam.telegram.thefreestuffbot.structures.ChatConfiguration;
 import com.github.tudeteam.telegram.thefreestuffbot.structures.Currency;
 import com.github.tudeteam.telegram.thefreestuffbot.structures.UntilFormat;
@@ -258,10 +258,10 @@ public class MenuHandler implements Handler<Update> {
                 if (checkPermission(query)) {
                     if (db.exists(chatId))
                         response.setText("WORK IN PROGRESS 🚧");
-                    else
+                    else {
                         response.setText("Games announcements are not enabled ⚠");
-
-                    //updateMenuKeyboard(menuMessage);
+                        updateMenuKeyboard(menuMessage);
+                    }
                 }
                 break;
             }

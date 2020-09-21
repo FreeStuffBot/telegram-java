@@ -1,19 +1,19 @@
 package com.github.tudeteam.telegram.thefreestuffbot;
 
+import com.github.rami_sabbagh.telegram.alice_framework.commands.Command;
+import com.github.rami_sabbagh.telegram.alice_framework.commands.CommandsHandler;
+import com.github.rami_sabbagh.telegram.alice_framework.commands.Locality;
+import com.github.rami_sabbagh.telegram.alice_framework.commands.Privacy;
+import com.github.rami_sabbagh.telegram.alice_framework.interactivity.InteractivityHandler;
+import com.github.rami_sabbagh.telegram.alice_framework.mongodb.ChatsTracker;
+import com.github.rami_sabbagh.telegram.alice_framework.mongodb.commands.DemoteCommand;
+import com.github.rami_sabbagh.telegram.alice_framework.mongodb.commands.PromoteCommand;
+import com.github.rami_sabbagh.telegram.alice_framework.mongodb.commands.authorizers.AuthorizeWithMongoDB;
+import com.github.rami_sabbagh.telegram.alice_framework.pipes.ConsumeOncePipe;
+import com.github.rami_sabbagh.telegram.alice_framework.pipes.Pipe;
+import com.github.rami_sabbagh.telegram.alice_framework.redis.interactivity.RedisInteractivityHandler;
+import com.github.rami_sabbagh.telegram.alice_framework.utilities.SilentExecutor;
 import com.github.tudeteam.telegram.thefreestuffbot.announcements.CheckDatabase;
-import com.github.tudeteam.telegram.thefreestuffbot.framework.commands.Command;
-import com.github.tudeteam.telegram.thefreestuffbot.framework.commands.CommandsHandler;
-import com.github.tudeteam.telegram.thefreestuffbot.framework.commands.Locality;
-import com.github.tudeteam.telegram.thefreestuffbot.framework.commands.Privacy;
-import com.github.tudeteam.telegram.thefreestuffbot.framework.interactives.InteractiveHandler;
-import com.github.tudeteam.telegram.thefreestuffbot.framework.mongodb.ChatsTracker;
-import com.github.tudeteam.telegram.thefreestuffbot.framework.mongodb.commands.DemoteCommand;
-import com.github.tudeteam.telegram.thefreestuffbot.framework.mongodb.commands.PromoteCommand;
-import com.github.tudeteam.telegram.thefreestuffbot.framework.mongodb.commands.authorizers.AuthorizeWithMongoDB;
-import com.github.tudeteam.telegram.thefreestuffbot.framework.pipes.ConsumeOncePipe;
-import com.github.tudeteam.telegram.thefreestuffbot.framework.pipes.Pipe;
-import com.github.tudeteam.telegram.thefreestuffbot.framework.redis.RedisInteractiveHandler;
-import com.github.tudeteam.telegram.thefreestuffbot.framework.utilities.SilentExecutor;
 import com.github.tudeteam.telegram.thefreestuffbot.structures.GameData;
 import com.google.gson.Gson;
 import com.mongodb.client.MongoClient;
@@ -70,7 +70,7 @@ public class TheFreeStuffBot extends TelegramLongPollingBot {
     protected final SilentExecutor silent = new SilentExecutor(this);
     protected final AuthorizeWithMongoDB authorizer = new AuthorizeWithMongoDB(silent, botCreatorID, adminsCollection);
     protected final CommandsHandler commandsHandler = new CommandsHandler(botUsername, silent, authorizer);
-    protected final InteractiveHandler interactiveHandler = new RedisInteractiveHandler(this.getBotUsername(), redisCommands);
+    protected final InteractivityHandler interactivityHandler = new RedisInteractivityHandler(this.getBotUsername(), redisCommands);
     protected final ChatsTracker chatsTracker = new ChatsTracker(botUsername, chatsCollection);
     protected final ConfigurationDB configurationDB = new ConfigurationDB(configCollection);
     protected final MenuHandler menuHandler = new MenuHandler(silent, configurationDB, authorizer);
@@ -82,8 +82,8 @@ public class TheFreeStuffBot extends TelegramLongPollingBot {
                 0, 1, MINUTES);
 
         updatesPipe.registerHandler(chatsTracker);
-        updatesPipe.registerHandler(interactiveHandler);
         updatesPipe.registerHandler(commandsHandler);
+        updatesPipe.registerHandler(interactivityHandler);
         updatesPipe.registerHandler(menuHandler);
 
         commandsHandler.registerCommand(new PromoteCommand(adminsCollection, silent, botCreatorID));

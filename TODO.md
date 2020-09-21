@@ -13,6 +13,7 @@ MongoDB for storing the progress.
   - [x] Define the redis structure for the analytics.
   - [x] Put the result analytics into MongoDB once published.
 - [ ] Make the watcher filter for `accepted` games instead of `published`.
+- [ ] Implement the chat id migration thing for groups and supergroups.
 
 ## Settings Menu
 

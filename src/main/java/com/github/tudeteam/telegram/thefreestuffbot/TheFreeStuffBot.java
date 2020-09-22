@@ -1,33 +1,15 @@
 package com.github.tudeteam.telegram.thefreestuffbot;
 
+import com.github.rami_sabbagh.telegram.alice_framework.bots.alice.AliceBot;
 import com.github.rami_sabbagh.telegram.alice_framework.commands.Command;
-import com.github.rami_sabbagh.telegram.alice_framework.commands.CommandsHandler;
 import com.github.rami_sabbagh.telegram.alice_framework.commands.Locality;
 import com.github.rami_sabbagh.telegram.alice_framework.commands.Privacy;
-import com.github.rami_sabbagh.telegram.alice_framework.interactivity.InteractivityHandler;
-import com.github.rami_sabbagh.telegram.alice_framework.mongodb.ChatsTracker;
-import com.github.rami_sabbagh.telegram.alice_framework.mongodb.commands.DemoteCommand;
-import com.github.rami_sabbagh.telegram.alice_framework.mongodb.commands.PromoteCommand;
-import com.github.rami_sabbagh.telegram.alice_framework.mongodb.commands.authorizers.AuthorizeWithMongoDB;
-import com.github.rami_sabbagh.telegram.alice_framework.pipes.ConsumeOncePipe;
-import com.github.rami_sabbagh.telegram.alice_framework.pipes.Pipe;
-import com.github.rami_sabbagh.telegram.alice_framework.redis.interactivity.RedisInteractivityHandler;
-import com.github.rami_sabbagh.telegram.alice_framework.utilities.SilentExecutor;
 import com.github.tudeteam.telegram.thefreestuffbot.announcements.CheckDatabase;
 import com.github.tudeteam.telegram.thefreestuffbot.structures.GameData;
 import com.google.gson.Gson;
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
-import io.lettuce.core.RedisClient;
-import io.lettuce.core.api.StatefulRedisConnection;
-import io.lettuce.core.api.sync.RedisCommands;
 import org.bson.Document;
-import org.telegram.telegrambots.bots.DefaultBotOptions;
-import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.commands.SetMyCommands;
-import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.commands.BotCommand;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 
@@ -40,54 +22,22 @@ import static com.mongodb.client.model.Filters.*;
 import static com.mongodb.client.model.Updates.set;
 import static java.util.concurrent.TimeUnit.MINUTES;
 
-public class TheFreeStuffBot extends TelegramLongPollingBot {
+public class TheFreeStuffBot extends AliceBot {
 
-    /* Configuration variables using Environment variables */
-    protected static final String botToken = System.getenv("BOT_TOKEN");
-    protected static final String botUsername = System.getenv("BOT_USERNAME");
-    protected static final int botCreatorID = Integer.parseInt(System.getenv("BOT_CREATORID"));
-    protected static final String botDatabaseURI = System.getenv("BOT_DATABASE");
-    /* Redis */
-    protected static final RedisClient redisClient = RedisClient.create("redis://localhost:6379");
-    protected static final StatefulRedisConnection<String, String> redisConnection = redisClient.connect();
-    protected static final RedisCommands<String, String> redisCommands = redisConnection.sync();
-    /* MongoDB */
-    protected static final MongoClient mongoClient = MongoClients.create(botDatabaseURI);
-    protected static final MongoDatabase mongoDatabase = mongoClient.getDatabase("freestuffbot");
-    protected static final MongoCollection<Document> adminsCollection = mongoDatabase.getCollection("telegram-admins");
-    protected static final MongoCollection<Document> chatsCollection = mongoDatabase.getCollection("telegram-chats");
-    protected static final MongoCollection<Document> configCollection = mongoDatabase.getCollection("telegram-config");
-    protected static final MongoCollection<Document> gamesCollection = mongoDatabase.getCollection("games");
     /* End of configuration */
     private static final Gson gson = new Gson();
-    private static final DefaultBotOptions botOptions = new DefaultBotOptions();
-
-    static {
-        botOptions.setMaxThreads(6);
-    }
-
-    protected final Pipe<Update> updatesPipe = new ConsumeOncePipe<>();
-    protected final SilentExecutor silent = new SilentExecutor(this);
-    protected final AuthorizeWithMongoDB authorizer = new AuthorizeWithMongoDB(silent, botCreatorID, adminsCollection);
-    protected final CommandsHandler commandsHandler = new CommandsHandler(botUsername, silent, authorizer);
-    protected final InteractivityHandler interactivityHandler = new RedisInteractivityHandler(this.getBotUsername(), redisCommands);
-    protected final ChatsTracker chatsTracker = new ChatsTracker(botUsername, chatsCollection);
+    /* MongoDB */
+    protected final MongoCollection<Document> configCollection = mongoDatabase.getCollection("telegram-config");
+    protected final MongoCollection<Document> gamesCollection = mongoDatabase.getCollection("games");
     protected final ConfigurationDB configurationDB = new ConfigurationDB(configCollection);
     protected final MenuHandler menuHandler = new MenuHandler(silent, configurationDB, authorizer);
     protected final ScheduledExecutorService scheduledExecutor = Executors.newSingleThreadScheduledExecutor();
 
     public TheFreeStuffBot() {
-        super(botOptions);
+        super(new TheFreeStuffBotOptions());
+
         scheduledExecutor.scheduleWithFixedDelay(new CheckDatabase(silent, this.exe, configCollection, gamesCollection, redisCommands),
                 0, 1, MINUTES);
-
-        updatesPipe.registerHandler(chatsTracker);
-        updatesPipe.registerHandler(commandsHandler);
-        updatesPipe.registerHandler(interactivityHandler);
-        updatesPipe.registerHandler(menuHandler);
-
-        commandsHandler.registerCommand(new PromoteCommand(adminsCollection, silent, botCreatorID));
-        commandsHandler.registerCommand(new DemoteCommand(adminsCollection, silent, botCreatorID));
 
         commandsHandler.newCommand()
                 .name("ping")
@@ -110,7 +60,7 @@ public class TheFreeStuffBot extends TelegramLongPollingBot {
                     )).sort(new Document("published", -1))
                             .forEach(document -> {
                                 GameData gameData = gson.fromJson(document.toJson(), GameData.class);
-                                games.add("• " + gameData.info.title);
+                                games.add("• " + gameData.info.title.replace("!", "\\!"));
                             });
 
                     if (games.isEmpty())
@@ -173,34 +123,6 @@ public class TheFreeStuffBot extends TelegramLongPollingBot {
                 .build();
     }
 
-    /**
-     * This method is called when receiving updates via GetUpdates method
-     *
-     * @param update Update received
-     */
-    @Override
-    public void onUpdateReceived(Update update) {
-        System.out.println(update);
-        System.out.println(updatesPipe.process(update) ? "The update got consumed!" : "The update was not consumed!");
-    }
-
-    /**
-     * Return bot username of this bot
-     */
-    @Override
-    public String getBotUsername() {
-        return botUsername;
-    }
-
-    /**
-     * Returns the token of the bot to be able to perform Telegram Api Requests
-     *
-     * @return Token of the bot
-     */
-    @Override
-    public String getBotToken() {
-        return botToken;
-    }
 
     /**
      * Shutdown the bot.
@@ -209,12 +131,7 @@ public class TheFreeStuffBot extends TelegramLongPollingBot {
     public void onClosing() {
         //Executors
         scheduledExecutor.shutdown();
-        //Telegram
+        //AliceBot
         super.onClosing();
-        //MongoDB
-        mongoClient.close();
-        //Redis
-        redisConnection.close();
-        redisClient.shutdown();
     }
 }

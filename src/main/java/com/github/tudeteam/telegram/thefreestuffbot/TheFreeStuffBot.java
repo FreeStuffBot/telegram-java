@@ -32,6 +32,7 @@ public class TheFreeStuffBot extends AliceBot {
 
     public TheFreeStuffBot() {
         super(new TheFreeStuffBotOptions());
+        updatesPipe.registerHandler(menuHandler);
 
         scheduledExecutor.scheduleWithFixedDelay(new CheckDatabase(silent, this.exe, configCollection, gamesCollection, redisCommands),
                 0, 1, MINUTES);

@@ -24,11 +24,12 @@ import static java.util.concurrent.TimeUnit.MINUTES;
 
 public class TheFreeStuffBot extends AliceBot {
 
-    /* End of configuration */
     private static final Gson gson = new Gson();
-    /* MongoDB */
+
+    /* MongoDB Collections */
     protected final MongoCollection<Document> configCollection = mongoDatabase.getCollection("telegram-config");
     protected final MongoCollection<Document> gamesCollection = mongoDatabase.getCollection("games");
+    /* Bot Components */
     protected final ConfigurationDB configurationDB = new ConfigurationDB(configCollection);
     protected final MenuHandler menuHandler = new MenuHandler(silent, configurationDB, authorizer);
     protected final ScheduledExecutorService scheduledExecutor = Executors.newSingleThreadScheduledExecutor();

@@ -1,6 +1,6 @@
 package com.github.tudeteam.telegram.thefreestuffbot;
 
-import com.github.rami_sabbagh.telegram.alice_framework.mongodb.commands.authorizers.AuthorizeWithMongoDB;
+import com.github.rami_sabbagh.telegram.alice_framework.commands.authorizers.StandardAuthorizer;
 import com.github.rami_sabbagh.telegram.alice_framework.pipes.Handler;
 import com.github.rami_sabbagh.telegram.alice_framework.utilities.SilentExecutor;
 import com.github.tudeteam.telegram.thefreestuffbot.structures.ChatConfiguration;
@@ -17,9 +17,9 @@ import java.util.List;
 public class MenuHandler implements Handler<Update> {
     protected final SilentExecutor silent;
     protected final ConfigurationDB db;
-    protected final AuthorizeWithMongoDB authorizer;
+    protected final StandardAuthorizer authorizer;
 
-    public MenuHandler(SilentExecutor silent, ConfigurationDB db, AuthorizeWithMongoDB authorizer) {
+    public MenuHandler(SilentExecutor silent, ConfigurationDB db, StandardAuthorizer authorizer) {
         this.silent = silent;
         this.db = db;
         this.authorizer = authorizer;

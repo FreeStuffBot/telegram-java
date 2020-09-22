@@ -18,15 +18,11 @@
     <maven.compiler.target>13</maven.compiler.target>
   </properties>
 
-  <modules>
-    <module>alice-framework</module>
-  </modules>
-
   <dependencies>
     <!-- Alice Framework -->
     <dependency>
       <groupId>com.github.rami_sabbagh</groupId>
-      <artifactId>telegram-alice-framework</artifactId>
+      <artifactId>alice-framework</artifactId>
       <version>1.0-SNAPSHOT</version>
     </dependency>
     <!-- The Telegram API library -->

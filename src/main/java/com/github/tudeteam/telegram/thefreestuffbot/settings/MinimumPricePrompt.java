@@ -38,7 +38,7 @@ public class MinimumPricePrompt implements InteractivityListener {
 
     @Override
     public boolean process(long chatId, Message message, InteractivityState state) {
-        if (!authorizer.isGroupAdmin(message) && !authorizer.isAdmin(message))
+        if (!authorizer.isGroupAdmin(message) && !authorizer.isAdmin(message) && !authorizer.isOwner(message))
             return false; //Ignore the replies from non-admins.
 
         if (!message.hasText()) {

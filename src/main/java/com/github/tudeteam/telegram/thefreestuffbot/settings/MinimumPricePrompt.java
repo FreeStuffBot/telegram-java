@@ -53,10 +53,12 @@ public class MinimumPricePrompt implements InteractivityListener {
 
         try {
             value = Double.parseDouble(text);
+            if (Double.isNaN(value))
+                throw new NumberFormatException();
         } catch (NumberFormatException e) {
-            silent.compose().html("<b>Invalid number ⚠</b>\nPlease input a valid minimum price:")
-                    .replyTo(message).markup(forceReply).send();
-            return true;
+            return state.setFilterInGroups(silent.compose()
+                    .html("<b>Invalid number ⚠</b>\nPlease input a valid minimum price:")
+                    .replyTo(message).markup(forceReply).send());
         }
 
         String price = String.format("%s%04.2f", currency, value);
@@ -71,14 +73,14 @@ public class MinimumPricePrompt implements InteractivityListener {
                     .replyToOnlyInGroup(message).markup(forceReply).send());
 
         } else if (value == 0) {
-            silent.compose().html("<b>As you wish, no price filter!</b\n>"
+            silent.compose().html("<b>As you wish, no price filter!</b>\n"
                     + "Now each and every game will be announced, no matter how expensive it is."
                     + " Or better: was")
                     .replyToOnlyInGroup(message).markup(returnToSettings).send();
 
         } else if (value == 69) {
             silent.compose().html("<b>Nice!</b>\n"
-                    + "As you wish, no price filter!")
+                    + "You'll only get the good stuff!")
                     .replyToOnlyInGroup(message).markup(returnToSettings).send();
 
         } else if (value > 100) {

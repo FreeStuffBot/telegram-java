@@ -1,6 +1,8 @@
-package com.github.tudeteam.telegram.thefreestuffbot;
+package com.github.tudeteam.telegram.thefreestuffbot.settings;
 
 import com.github.rami_sabbagh.telegram.alice_framework.utilities.SilentExecutor;
+import com.github.tudeteam.telegram.thefreestuffbot.ConfigurationDB;
+import com.github.tudeteam.telegram.thefreestuffbot.TheFreeStuffBot;
 import com.github.tudeteam.telegram.thefreestuffbot.structures.ChatConfiguration;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;

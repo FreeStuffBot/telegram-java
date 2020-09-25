@@ -1,9 +1,9 @@
-package com.github.tudeteam.telegram.thefreestuffbot.announcements;
+package com.github.tudeteam.telegram.thefreestuffbot.components.announcements;
 
 import com.github.rami_sabbagh.telegram.alice_framework.utilities.ChatUtilities;
 import com.github.rami_sabbagh.telegram.alice_framework.utilities.ChatUtilities.ChatType;
 import com.github.rami_sabbagh.telegram.alice_framework.utilities.SilentExecutor;
-import com.github.tudeteam.telegram.thefreestuffbot.ConfigurationDB;
+import com.github.tudeteam.telegram.thefreestuffbot.components.ConfigurationDB;
 import com.github.tudeteam.telegram.thefreestuffbot.structures.ChatConfiguration;
 import com.github.tudeteam.telegram.thefreestuffbot.structures.GameInfo;
 import io.lettuce.core.api.sync.RedisCommands;
@@ -86,12 +86,7 @@ public class AnnouncementWorker implements Runnable {
         return silent.execute(new SendPhoto()
                 .setChatId(chatId)
                 .setPhoto(gameInfo.thumbnail.toString())
-                .setCaption(String.format("<b>Free Game!</b>\n<b>%s</b>\n<s>%s</s> <b>Free</b> until %s • %s\nvia freestuffbot.xyz",
-                        gameInfo.title,
-                        gameInfo.org_price.toString(config.currency),
-                        gameInfo.formatUntil(config.untilFormat),
-                        gameInfo.store.toString()
-                ))
+                .setCaption(gameInfo.formatCaption(config))
                 .setParseMode("HTML")
                 .setReplyMarkup(inlineMarkup)
         );

@@ -1,11 +1,11 @@
-package com.github.tudeteam.telegram.thefreestuffbot.settings;
+package com.github.tudeteam.telegram.thefreestuffbot.components.settings;
 
 import com.github.rami_sabbagh.telegram.alice_framework.commands.authorizers.PrivacyAuthorizer;
 import com.github.rami_sabbagh.telegram.alice_framework.interactivity.InteractivityListener;
 import com.github.rami_sabbagh.telegram.alice_framework.interactivity.InteractivityState;
 import com.github.rami_sabbagh.telegram.alice_framework.utilities.SilentExecutor;
-import com.github.tudeteam.telegram.thefreestuffbot.ConfigurationDB;
 import com.github.tudeteam.telegram.thefreestuffbot.TheFreeStuffBot;
+import com.github.tudeteam.telegram.thefreestuffbot.components.ConfigurationDB;
 import com.github.tudeteam.telegram.thefreestuffbot.structures.Currency;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ForceReplyKeyboard;

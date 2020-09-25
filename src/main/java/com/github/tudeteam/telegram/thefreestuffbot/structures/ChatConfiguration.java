@@ -2,6 +2,17 @@ package com.github.tudeteam.telegram.thefreestuffbot.structures;
 
 public class ChatConfiguration {
 
+    public static final ChatConfiguration defaultConfig = new ChatConfiguration();
+
+    static {
+        defaultConfig._id = 0;
+        defaultConfig.enabled = true;
+        defaultConfig.currency = Currency.USD;
+        defaultConfig.untilFormat = UntilFormat.DATE;
+        defaultConfig.trash = false;
+        defaultConfig.minPrice = 0.0;
+    }
+
     /**
      * The chatId to send the announcements to.
      */

@@ -2,8 +2,10 @@ package com.github.tudeteam.telegram.thefreestuffbot;
 
 import com.github.rami_sabbagh.telegram.alice_framework.bots.alice.AliceBot;
 import com.github.rami_sabbagh.telegram.alice_framework.commands.Privacy;
-import com.github.tudeteam.telegram.thefreestuffbot.announcements.CheckDatabase;
-import com.github.tudeteam.telegram.thefreestuffbot.settings.SettingsMenu;
+import com.github.tudeteam.telegram.thefreestuffbot.components.ConfigurationDB;
+import com.github.tudeteam.telegram.thefreestuffbot.components.InlineQueryHandler;
+import com.github.tudeteam.telegram.thefreestuffbot.components.announcements.CheckDatabase;
+import com.github.tudeteam.telegram.thefreestuffbot.components.settings.SettingsMenu;
 import com.github.tudeteam.telegram.thefreestuffbot.structures.GameData;
 import com.google.gson.Gson;
 import com.mongodb.client.MongoCollection;
@@ -28,11 +30,13 @@ public class TheFreeStuffBot extends AliceBot {
     public final MongoCollection<Document> gamesCollection = mongoDatabase.getCollection("games");
     /* Bot Components */
     public final ConfigurationDB configurationDB = new ConfigurationDB(this);
+    public final InlineQueryHandler inlineQueryHandler = new InlineQueryHandler(this);
     public final SettingsMenu settingsMenu = new SettingsMenu(this);
     public final ScheduledExecutorService scheduledExecutor = Executors.newSingleThreadScheduledExecutor();
 
     public TheFreeStuffBot() {
         super(new TheFreeStuffBotOptions());
+        updatesPipe.registerHandler(inlineQueryHandler);
         updatesPipe.registerHandler(settingsMenu);
 
         scheduledExecutor.scheduleWithFixedDelay(new CheckDatabase(this), 0, 1, MINUTES);

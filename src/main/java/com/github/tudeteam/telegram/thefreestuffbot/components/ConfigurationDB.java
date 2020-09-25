@@ -1,5 +1,6 @@
-package com.github.tudeteam.telegram.thefreestuffbot;
+package com.github.tudeteam.telegram.thefreestuffbot.components;
 
+import com.github.tudeteam.telegram.thefreestuffbot.TheFreeStuffBot;
 import com.github.tudeteam.telegram.thefreestuffbot.structures.ChatConfiguration;
 import com.github.tudeteam.telegram.thefreestuffbot.structures.Currency;
 import com.github.tudeteam.telegram.thefreestuffbot.structures.UntilFormat;
@@ -38,11 +39,11 @@ public class ConfigurationDB {
      */
     public boolean newConfiguration(long chatId) {
         return collection.insertOne(new Document("_id", chatId)
-                .append("enabled", true)
-                .append("currency", Currency.USD.name())
-                .append("untilFormat", UntilFormat.DATE.name())
-                .append("trash", false)
-                .append("minPrice", 0.0)).wasAcknowledged();
+                .append("enabled", ChatConfiguration.defaultConfig.enabled)
+                .append("currency", ChatConfiguration.defaultConfig.currency.name())
+                .append("untilFormat", ChatConfiguration.defaultConfig.untilFormat.name())
+                .append("trash", ChatConfiguration.defaultConfig.trash)
+                .append("minPrice", ChatConfiguration.defaultConfig.minPrice)).wasAcknowledged();
     }
 
     /**

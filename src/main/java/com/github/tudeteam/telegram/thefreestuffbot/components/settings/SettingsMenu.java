@@ -1,11 +1,11 @@
-package com.github.tudeteam.telegram.thefreestuffbot.settings;
+package com.github.tudeteam.telegram.thefreestuffbot.components.settings;
 
 import com.github.rami_sabbagh.telegram.alice_framework.commands.authorizers.PrivacyAuthorizer;
 import com.github.rami_sabbagh.telegram.alice_framework.interactivity.InteractivityHandler;
 import com.github.rami_sabbagh.telegram.alice_framework.pipes.Handler;
 import com.github.rami_sabbagh.telegram.alice_framework.utilities.SilentExecutor;
-import com.github.tudeteam.telegram.thefreestuffbot.ConfigurationDB;
 import com.github.tudeteam.telegram.thefreestuffbot.TheFreeStuffBot;
+import com.github.tudeteam.telegram.thefreestuffbot.components.ConfigurationDB;
 import com.github.tudeteam.telegram.thefreestuffbot.structures.ChatConfiguration;
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageReplyMarkup;
@@ -18,7 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.github.tudeteam.telegram.thefreestuffbot.settings.SettingsMenu.SettingsButton.*;
+import static com.github.tudeteam.telegram.thefreestuffbot.components.settings.SettingsMenu.SettingsButton.*;
 import static com.github.tudeteam.telegram.thefreestuffbot.structures.Currency.EUR;
 import static com.github.tudeteam.telegram.thefreestuffbot.structures.Currency.USD;
 import static com.github.tudeteam.telegram.thefreestuffbot.structures.UntilFormat.DATE;

@@ -40,4 +40,13 @@ public class GameInfo extends ScrapeableGameInfo {
     public boolean hasFlag(GameFlag flag) {
         return flag.isSet(flags);
     }
+
+    public String formatCaption(ChatConfiguration config) {
+        return String.format("<b>Free Game!</b>\n<b>%s</b>\n<s>%s</s> <b>Free</b> until %s • %s\nvia freestuffbot.xyz",
+                title,
+                org_price.toString(config.currency),
+                formatUntil(config.untilFormat),
+                store.toString()
+        );
+    }
 }

@@ -1,4 +1,4 @@
-package com.github.tudeteam.telegram.thefreestuffbot.announcements;
+package com.github.tudeteam.telegram.thefreestuffbot.components.announcements;
 
 public class RateLimitBucket {
 

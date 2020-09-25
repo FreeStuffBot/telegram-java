@@ -58,7 +58,8 @@ public class SettingsMenu {
         DISABLE_TRASH_FILTER("Filter low-quality games: ✅ - toggle", "menu:trash-disable"),
         SET_MINIMUM_PRICE("Minimal original price: %s%04.2f - change", "menu:min-price-set"),
         SUPPORT_BOT("Support bot ♥", "menu:support-bot"),
-        CONFIGURATION_HELP("Configuration help ℹ", "menu:help");
+        CONFIGURATION_HELP("Configuration help ℹ", "menu:help"),
+        RETURN_TO_SETTINGS("Return to settings menu ⚙", "menu:settings");
 
         public final InlineKeyboardButton button;
         public final List<InlineKeyboardButton> buttonRow;

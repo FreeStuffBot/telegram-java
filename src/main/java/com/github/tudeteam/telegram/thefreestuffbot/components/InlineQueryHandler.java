@@ -53,7 +53,6 @@ public class InlineQueryHandler implements Handler<Update> {
         response.setInlineQueryId(query.getId());
 
         List<InlineQueryResult> results = new ArrayList<>();
-        response.setCacheTime(0);
         response.setResults(results);
         response.setPersonal(true);
         response.setNextOffset("");

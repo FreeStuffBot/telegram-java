@@ -56,7 +56,7 @@ public class SettingsMenu {
         SET_UNTIL_WEEKDAY("Until format: date - switch to weekday", "menu:until-set-weekday"),
         ENABLE_TRASH_FILTER("Filter low-quality games: ❎ - toggle", "menu:trash-enable"),
         DISABLE_TRASH_FILTER("Filter low-quality games: ✅ - toggle", "menu:trash-disable"),
-        SET_MINIMUM_PRICE("Minimal original price: %c%04.2d - change", "menu:min-price-set"),
+        SET_MINIMUM_PRICE("Minimal original price: %s%04.2f - change", "menu:min-price-set"),
         SUPPORT_BOT("Support bot ♥", "menu:support-bot"),
         CONFIGURATION_HELP("Configuration help ℹ", "menu:help");
 

@@ -17,8 +17,8 @@ MongoDB for storing the progress.
 
 ## Settings Menu
 
-- [ ] Implement the minimum price option.
-- [ ] Add a close menu button.
+- [x] Implement the minimum price option.
+- [x] Add a close menu button.
 - [ ] Create a sub-menu for filtering by store.
   - [ ] Add buttons to enable or disable all.
 - [ ] Create `/channel_menu` for configuring the bot on a channel.

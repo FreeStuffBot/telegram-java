@@ -16,8 +16,8 @@ public class ConfigurationDB {
 
     protected final MongoCollection<Document> collection;
 
-    public ConfigurationDB(MongoCollection<Document> collection) {
-        this.collection = collection;
+    public ConfigurationDB(TheFreeStuffBot bot) {
+        this.collection = bot.configCollection;
     }
 
     /**

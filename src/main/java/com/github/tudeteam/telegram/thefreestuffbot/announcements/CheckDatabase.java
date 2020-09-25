@@ -2,6 +2,7 @@ package com.github.tudeteam.telegram.thefreestuffbot.announcements;
 
 import com.github.rami_sabbagh.telegram.alice_framework.utilities.SilentExecutor;
 import com.github.tudeteam.telegram.thefreestuffbot.ConfigurationDB;
+import com.github.tudeteam.telegram.thefreestuffbot.TheFreeStuffBot;
 import com.github.tudeteam.telegram.thefreestuffbot.structures.GameInfo;
 import com.github.tudeteam.telegram.thefreestuffbot.structures.TelegramAnalytics;
 import com.google.gson.Gson;
@@ -68,14 +69,13 @@ public class CheckDatabase implements Runnable {
 
     /* Constructor */
 
-    public CheckDatabase(SilentExecutor silent, ExecutorService executor, MongoCollection<Document> configCollection, MongoCollection<Document> gamesCollection, RedisCommands<String, String> redisCommands) {
-        this.silent = silent;
-        this.executor = executor;
-        this.configCollection = configCollection;
-        this.gamesCollection = gamesCollection;
-        this.redisCommands = redisCommands;
-
-        db = new ConfigurationDB(configCollection);
+    public CheckDatabase(TheFreeStuffBot bot) {
+        silent = bot.silent;
+        executor = bot.executor;
+        configCollection = bot.configCollection;
+        gamesCollection = bot.gamesCollection;
+        redisCommands = bot.redisCommands;
+        db = bot.configurationDB;
     }
 
     /* Instance Methods */

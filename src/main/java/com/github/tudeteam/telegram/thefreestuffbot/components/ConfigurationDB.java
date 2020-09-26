@@ -1,5 +1,6 @@
 package com.github.tudeteam.telegram.thefreestuffbot.components;
 
+import com.github.rami_sabbagh.telegram.alice_framework.pipes.Handler;
 import com.github.tudeteam.telegram.thefreestuffbot.TheFreeStuffBot;
 import com.github.tudeteam.telegram.thefreestuffbot.structures.ChatConfiguration;
 import com.github.tudeteam.telegram.thefreestuffbot.structures.Currency;
@@ -7,6 +8,8 @@ import com.github.tudeteam.telegram.thefreestuffbot.structures.UntilFormat;
 import com.google.gson.Gson;
 import com.mongodb.client.MongoCollection;
 import org.bson.Document;
+import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.api.objects.Update;
 
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Updates.set;
@@ -17,8 +20,27 @@ public class ConfigurationDB {
 
     protected final MongoCollection<Document> collection;
 
+    public final Handler<Update> migrationHandler;
+
     public ConfigurationDB(TheFreeStuffBot bot) {
         this.collection = bot.configCollection;
+
+        migrationHandler = update -> {
+            if (!update.hasMessage()) return false;
+            Message message = update.getMessage();
+            if (message.getMigrateFromChatId() == null || message.getMigrateToChatId() == null) return false;
+
+            long fromChatId = message.getMigrateFromChatId();
+            long toChatId = message.getMigrateToChatId();
+
+            Document document = collection.findOneAndDelete(eq("_id", fromChatId));
+            if (document != null) {
+                document.put("_id", toChatId);
+                collection.insertOne(document);
+            }
+
+            return false; //The migration messages should not be consumed, so they get passed to all the bot's components.
+        };
     }
 
     /**

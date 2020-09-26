@@ -36,6 +36,7 @@ public class TheFreeStuffBot extends AliceBot {
 
     public TheFreeStuffBot() {
         super(new TheFreeStuffBotOptions());
+        updatesPipe.registerHandler(configurationDB.migrationHandler);
         updatesPipe.registerHandler(inlineQueryHandler);
         updatesPipe.registerHandler(settingsMenu);
 

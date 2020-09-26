@@ -60,6 +60,7 @@ public class SettingsMenu implements Handler<Update> {
         } else {
             keyboard.add(ENABLE_ANNOUNCEMENTS.buttonRow);
             if (db.exists(chatId)) keyboard.add(DELETE_CONFIGURATION.buttonRow);
+            keyboard.add(CLOSE_MENU.buttonRow);
         }
 
         return menuMarkup;

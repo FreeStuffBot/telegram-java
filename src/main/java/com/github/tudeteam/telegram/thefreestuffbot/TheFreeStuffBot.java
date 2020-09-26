@@ -4,6 +4,7 @@ import com.github.rami_sabbagh.telegram.alice_framework.bots.alice.AliceBot;
 import com.github.rami_sabbagh.telegram.alice_framework.commands.Privacy;
 import com.github.tudeteam.telegram.thefreestuffbot.components.ConfigurationDB;
 import com.github.tudeteam.telegram.thefreestuffbot.components.InlineQueryHandler;
+import com.github.tudeteam.telegram.thefreestuffbot.components.announcements.AnnouncementsMigrationHandler;
 import com.github.tudeteam.telegram.thefreestuffbot.components.announcements.CheckDatabase;
 import com.github.tudeteam.telegram.thefreestuffbot.components.settings.SettingsMenu;
 import com.github.tudeteam.telegram.thefreestuffbot.structures.GameData;
@@ -36,6 +37,7 @@ public class TheFreeStuffBot extends AliceBot {
 
     public TheFreeStuffBot() {
         super(new TheFreeStuffBotOptions());
+        updatesPipe.registerHandler(new AnnouncementsMigrationHandler(this));
         updatesPipe.registerHandler(configurationDB.migrationHandler);
         updatesPipe.registerHandler(inlineQueryHandler);
         updatesPipe.registerHandler(settingsMenu);

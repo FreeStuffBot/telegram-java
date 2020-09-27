@@ -10,6 +10,7 @@ import com.github.tudeteam.telegram.thefreestuffbot.structures.UntilFormat;
 import com.google.gson.Gson;
 import com.mongodb.client.MongoCollection;
 import org.bson.Document;
+import org.bson.conversions.Bson;
 import org.telegram.telegrambots.meta.api.methods.AnswerInlineQuery;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
@@ -47,6 +48,7 @@ public class InlineQueryHandler implements Handler<Update> {
     public boolean process(Update update) {
         if (!update.hasInlineQuery()) return false;
         InlineQuery query = update.getInlineQuery();
+        String queryInput = query.getQuery();
         User from = query.getFrom();
 
         AnswerInlineQuery response = new AnswerInlineQuery();
@@ -61,12 +63,27 @@ public class InlineQueryHandler implements Handler<Update> {
         if (tempConfig == null) tempConfig = ChatConfiguration.defaultConfig;
         ChatConfiguration config = tempConfig;
 
+        Bson searchFilter;
         int currentTime = (int) (System.currentTimeMillis() / 1000L);
-        gamesCollection.find(and(
-                regex("info.title", searchRegex(query.getQuery())),
-                or(eq("status", "published"), eq("status", "accepted")),
-                gte("info.until", currentTime)
-        )).sort(descending("published")).limit(50)
+
+        if (queryInput.startsWith("game_id:")) {
+            try {
+                long gameId = Long.parseLong(queryInput.substring(8));
+                searchFilter = and(
+                        eq("_id", gameId),
+                        or(eq("status", "published"), eq("status", "accepted")));
+            } catch (NumberFormatException e) {
+                silent.execute(response);
+                return true;
+            }
+        } else
+            searchFilter = and(
+                    regex("info.title", searchRegex(queryInput)),
+                    or(eq("status", "published"), eq("status", "accepted")),
+                    gte("info.until", currentTime)
+            );
+
+        gamesCollection.find(searchFilter).sort(descending("published")).limit(50)
                 .forEach(document -> {
                     GameData gameData = gson.fromJson(document.toJson(), GameData.class);
                     if (!config.trash && gameData.info.hasFlag(GameFlag.TRASH)) return;
@@ -76,8 +93,13 @@ public class InlineQueryHandler implements Handler<Update> {
 
                     InlineKeyboardMarkup inlineMarkup = new InlineKeyboardMarkup();
                     inlineMarkup.getKeyboard().add(List.of(new InlineKeyboardButton()
-                            .setText("Get")
-                            .setUrl(gameData.info.org_url.toString())));
+                                    .setText("Share")
+                                    .setSwitchInlineQuery("game_id:" + gameData._id),
+
+                            new InlineKeyboardButton()
+                                    .setText("Get")
+                                    .setUrl(gameData.info.org_url.toString())));
+
 
                     result.setId(String.valueOf(gameData._id));
                     result.setPhotoUrl(gameData.info.thumbnail.toString());

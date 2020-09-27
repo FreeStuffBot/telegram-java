@@ -7,11 +7,13 @@ import com.github.tudeteam.telegram.thefreestuffbot.components.InlineQueryHandle
 import com.github.tudeteam.telegram.thefreestuffbot.components.announcements.AnnouncementsMigrationHandler;
 import com.github.tudeteam.telegram.thefreestuffbot.components.announcements.CheckDatabase;
 import com.github.tudeteam.telegram.thefreestuffbot.components.settings.SettingsMenu;
+import com.github.tudeteam.telegram.thefreestuffbot.structures.ChatConfiguration;
 import com.github.tudeteam.telegram.thefreestuffbot.structures.GameData;
 import com.google.gson.Gson;
 import com.mongodb.client.MongoCollection;
 import org.bson.Document;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,6 +21,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
 import static com.mongodb.client.model.Filters.*;
+import static com.mongodb.client.model.Sorts.descending;
 import static com.mongodb.client.model.Updates.set;
 import static java.util.concurrent.TimeUnit.MINUTES;
 
@@ -48,24 +51,35 @@ public class TheFreeStuffBot extends AliceBot {
                 .name("free")
                 .description("List currently free games")
                 .action((message, parsedCommand) -> {
-                    int currentTime = (int) (System.currentTimeMillis() / 1000L);
+                    long chatId = message.getChatId();
+                    ChatConfiguration config = configurationDB.getConfigurationWithDefaultFallback(chatId);
 
                     List<String> games = new ArrayList<>();
+                    InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
+                    List<List<InlineKeyboardButton>> keyboard = markup.getKeyboard();
 
+                    int currentTime = (int) (System.currentTimeMillis() / 1000L);
                     gamesCollection.find(and(
                             eq("status", "published"),
                             gte("info.until", currentTime)
-                    )).sort(new Document("published", -1))
+                    )).sort(descending("published"))
                             .forEach(document -> {
                                 GameData gameData = gson.fromJson(document.toJson(), GameData.class);
-                                games.add("• " + gameData.info.title.replace("!", "\\!"));
+                                games.add("• " + gameData.info.formatCaptionWithoutHeaderAndFooter(config));
+
+                                keyboard.add(List.of(new InlineKeyboardButton()
+                                        .setText("Share details • " + gameData.info.title)
+                                        .setSwitchInlineQuery("game_id:" + gameData._id)));
                             });
 
                     if (games.isEmpty())
                         silent.compose().text("There are no free games currently 😕")
                                 .chatId(message).send();
                     else
-                        silent.compose().markdown("*Those games are currently free:*\n" + String.join("\n", games))
+                        silent.compose().html("<b>These games are currently free:</b>\n\n"
+                                + String.join("\n\n", games)
+                                + "\n\n<i>via freestuffbot.xyz</i>")
+                                .disableWebPagePreview().markup(markup)
                                 .chatId(message).send();
 
                 })
@@ -90,6 +104,36 @@ public class TheFreeStuffBot extends AliceBot {
                     long count = gamesCollection.updateMany(eq("status", "published"), set("outgoing", new Document("telegram", true))).getMatchedCount();
 
                     silent.compose().text(count != 0 ? ("Announcing " + count + " games ✅") : "Failed to announce any games ⚠")
+                            .replyToOnlyInGroup(message).send();
+                })
+                .build();
+
+        commandsHandler.newCommand()
+                .name("announce")
+                .description("Announce a specific game by id 📢")
+                .privacy(Privacy.ADMIN)
+                .action((message, parsedCommand) -> {
+                    String parameters = parsedCommand.parameters;
+                    if (parameters.isBlank()) {
+                        silent.compose().text("Usage " + parsedCommand + " <game_id>")
+                                .replyToOnlyInGroup(message).send();
+                        return;
+                    }
+
+                    long gameId;
+
+                    try {
+                        gameId = Long.parseLong(parameters);
+                    } catch (NumberFormatException e) {
+                        silent.compose().text("Invalid game id ⚠")
+                                .replyToOnlyInGroup(message).send();
+                        return;
+                    }
+
+                    boolean success = gamesCollection.updateOne(eq("_id", gameId),
+                            set("outgoing", new Document("telegram", true))).getMatchedCount() == 1;
+
+                    silent.compose().text(success ? "Announced successfully ✅" : "Game not found ⚠")
                             .replyToOnlyInGroup(message).send();
                 })
                 .build();

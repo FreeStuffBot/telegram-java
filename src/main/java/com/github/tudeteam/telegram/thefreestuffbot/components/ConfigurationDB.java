@@ -91,6 +91,11 @@ public class ConfigurationDB {
         return gson.fromJson(document.toJson(), ChatConfiguration.class);
     }
 
+    public ChatConfiguration getConfigurationWithDefaultFallback(long chatId) {
+        ChatConfiguration config = getConfiguration(chatId);
+        return config == null ? ChatConfiguration.defaultConfig : config;
+    }
+
     public boolean setAnnouncements(long chatId, boolean enabled) {
         return collection.updateOne(eq("_id", chatId), set("enabled", enabled)).getMatchedCount() == 1;
     }

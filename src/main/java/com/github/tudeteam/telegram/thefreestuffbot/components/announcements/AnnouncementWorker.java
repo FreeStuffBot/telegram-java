@@ -79,8 +79,12 @@ public class AnnouncementWorker implements Runnable {
     protected Message sendAnnouncement(long chatId, ChatConfiguration config) {
         InlineKeyboardMarkup inlineMarkup = new InlineKeyboardMarkup();
         inlineMarkup.getKeyboard().add(List.of(new InlineKeyboardButton()
-                .setText("Get")
-                .setUrl(gameInfo.org_url.toString())
+                        .setText("Share")
+                        .setSwitchInlineQuery("game_id:" + this._id),
+
+                new InlineKeyboardButton()
+                        .setText("Get")
+                        .setUrl(gameInfo.org_url.toString())
         ));
 
         return silent.execute(new SendPhoto()

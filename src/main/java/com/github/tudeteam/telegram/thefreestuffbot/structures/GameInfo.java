@@ -42,7 +42,17 @@ public class GameInfo extends ScrapeableGameInfo {
     }
 
     public String formatCaption(ChatConfiguration config) {
-        return String.format("<b>Free Game!</b>\n<b>%s</b>\n<s>%s</s> <b>Free</b> until %s • %s\nvia freestuffbot.xyz",
+        return String.format("<b>Free Game!</b>\n<b>%s</b>\n<s>%s</s> <b>Free</b> until %s • <i>%s</i>\n<i>via freestuffbot.xyz</i>",
+                title,
+                org_price.toString(config.currency),
+                formatUntil(config.untilFormat),
+                store.toString()
+        );
+    }
+
+    public String formatCaptionWithoutHeaderAndFooter(ChatConfiguration config) {
+        return String.format("<a href=\"%s\"><b>%s</b></a>\n<s>%s</s> <b>Free</b> until %s • <i>%s</i>",
+                org_url.toString(),
                 title,
                 org_price.toString(config.currency),
                 formatUntil(config.untilFormat),

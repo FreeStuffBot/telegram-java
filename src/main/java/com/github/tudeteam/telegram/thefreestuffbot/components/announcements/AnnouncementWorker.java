@@ -73,7 +73,7 @@ public class AnnouncementWorker implements Runnable {
         //- It's a trash game announcement and the chat has them filtered.
         if (!config.trash && gameInfo.hasFlag(TRASH)) return true;
         //- The game's price is lower than the minimum price set for this channel.
-        return config.minPrice > gameInfo.price.inCurrency(config.currency);
+        return config.minPrice > gameInfo.org_price.inCurrency(config.currency);
     }
 
     protected Message sendAnnouncement(long chatId, ChatConfiguration config) {
